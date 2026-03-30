@@ -1,0 +1,298 @@
+<% layout("/layouts/boilerplate") %>
+
+    <div class="container-fluid py-5">
+        <div class="row mb-5 text-center">
+            <div class="col-12">
+                <h1 class="fw-bold mb-2">Admin Dashboard</h1>
+                <p class="text-muted">Manage system resources and user access</p>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="row g-4 mb-5 justify-content-center">
+            <!-- Total Revenue Card -->
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm rounded-4 bg-info bg-opacity-10 h-100 card-hover">
+                    <div class="card-body p-4 text-center">
+                        <i class="fa-solid fa-indian-rupee-sign fa-3x text-info mb-3"></i>
+                        <h2 class="fw-bold text-dark">
+                            &#8377; <%= totalRevenue.toLocaleString("en-IN") %>
+                        </h2>
+                        <p class="text-muted fw-bold mb-0">Total Revenue</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Total Bookings Card -->
+            <div class="col-md-3">
+                <a href="/admin/bookings" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm rounded-4 bg-warning bg-opacity-10 h-100 card-hover">
+                        <div class="card-body p-4 text-center">
+                            <i class="fa-solid fa-ticket fa-3x text-warning mb-3"></i>
+                            <h2 class="fw-bold text-dark">
+                                <%= totalBookings %>
+                            </h2>
+                            <p class="text-muted fw-bold mb-0">Total Bookings</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <!-- Total Listings Card -->
+            <div class="col-md-3">
+                <a href="/admin/listings" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm rounded-4 bg-success bg-opacity-10 h-100 card-hover">
+                        <div class="card-body p-4 text-center">
+                            <i class="fa-solid fa-house fa-3x text-success mb-3"></i>
+                            <h2 class="fw-bold text-dark">
+                                <%= totalListings %>
+                            </h2>
+                            <p class="text-muted fw-bold mb-0">Total Listings</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <!-- Total Users Card -->
+            <div class="col-md-3">
+                <a href="/admin/users" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm rounded-4 bg-primary bg-opacity-10 h-100 card-hover">
+                        <div class="card-body p-4 text-center">
+                            <i class="fa-solid fa-users fa-3x text-primary mb-3"></i>
+                            <h2 class="fw-bold text-dark">
+                                <%= totalUsers %>
+                            </h2>
+                            <p class="text-muted fw-bold mb-0">Total Users</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <style>
+            .card-hover {
+                transition: transform 0.2s;
+            }
+
+            .card-hover:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
+            }
+        </style>
+
+        <!-- Analytics Charts Row -->
+        <div class="row g-4 mb-5">
+            <!-- Revenue Bar Chart -->
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm rounded-4 h-100">
+                    <div class="card-header bg-white border-0 pt-4 px-4">
+                        <h5 class="fw-bold mb-0">Revenue Overview</h5>
+                    </div>
+                    <div class="card-body p-4 d-flex align-items-center justify-content-center">
+                        <canvas id="revenueChart" style="max-height: 300px;"></canvas>
+                    </div>
+                </div>
+            </div>
+            <!-- Category Doughnut Chart -->
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm rounded-4 h-100">
+                    <div class="card-header bg-white border-0 pt-4 px-4">
+                        <h5 class="fw-bold mb-0">Listings by Category</h5>
+                    </div>
+                    <div class="card-body p-4 d-flex align-items-center justify-content-center">
+                        <canvas id="categoryChart" style="max-height: 300px;"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Recent Listings -->
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-sm rounded-4 h-100">
+                    <div
+                        class="card-header bg-white border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                        <h5 class="fw-bold mb-0">Recent Listings</h5>
+                    </div>
+                    <div class="card-body px-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th class="ps-4">Title</th>
+                                        <th>Owner</th>
+                                        <th>Price</th>
+                                        <th class="text-end pe-4">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% for(let listing of recentListings) { %>
+                                        <tr>
+                                            <td class="ps-4">
+                                                <div class="d-flex align-items-center">
+                                                    <img src="<%= listing.image.url %>" class="rounded-3 me-3"
+                                                        style="width:40px;height:40px;object-fit:cover;">
+                                                    <span class="fw-semibold text-truncate" style="max-width: 150px;">
+                                                        <%= listing.title %>
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <%= listing.owner ? listing.owner.username : 'Unknown' %>
+                                            </td>
+                                            <td>&#8377;<%= listing.price.toLocaleString("en-IN") %>
+                                            </td>
+                                            <td class="text-end pe-4">
+                                                <form method="POST"
+                                                    action="/admin/listings/<%= listing._id %>?_method=DELETE"
+                                                    class="d-inline"
+                                                    onsubmit="return confirm('Are you sure you want to delete this listing permanently?');">
+                                                    <button class="btn btn-sm btn-light text-danger rounded-circle"><i
+                                                            class="fa-solid fa-trash"></i></button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                        <% } %>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Users -->
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-sm rounded-4 h-100">
+                    <div
+                        class="card-header bg-white border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                        <h5 class="fw-bold mb-0">Recent Users</h5>
+                    </div>
+                    <div class="card-body px-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th class="ps-4">User</th>
+                                        <th>Email</th>
+                                        <th>Role</th>
+                                        <th class="text-end pe-4">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% for(let rUser of recentUsers) { %>
+                                        <tr>
+                                            <td class="ps-4">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="bg-primary bg-opacity-10 rounded-circle text-primary fw-bold d-flex align-items-center justify-content-center me-3"
+                                                        style="width:40px;height:40px;">
+                                                        <%= rUser.username[0].toUpperCase() %>
+                                                    </div>
+                                                    <span class="fw-semibold">
+                                                        <%= rUser.username %>
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <%= rUser.email %>
+                                            </td>
+                                            <td>
+                                                <% if(rUser.isAdmin) { %>
+                                                    <span
+                                                        class="badge bg-success bg-opacity-10 text-success">Admin</span>
+                                                    <% } else { %>
+                                                        <span
+                                                            class="badge bg-secondary bg-opacity-10 text-secondary">User</span>
+                                                        <% } %>
+                                            </td>
+                                            <td class="text-end pe-4">
+                                                <% if(!rUser.isAdmin) { %>
+                                                    <form method="POST"
+                                                        action="/admin/users/<%= rUser._id %>?_method=DELETE"
+                                                        class="d-inline"
+                                                        onsubmit="return confirm('Are you sure you want to delete this user? This cannot be undone.');">
+                                                        <button
+                                                            class="btn btn-sm btn-light text-danger rounded-circle"><i
+                                                                class="fa-solid fa-user-xmark"></i></button>
+                                                    </form>
+                                                    <% } %>
+                                            </td>
+                                        </tr>
+                                        <% } %>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart.js Setup -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Unescape JSON passed from controller
+            const rawRevData = '<%- revenueData %>';
+            const rawCatData = '<%- categoryData %>';
+            
+            const revData = JSON.parse(rawRevData);
+            const catData = JSON.parse(rawCatData);
+
+            // 1. Revenue Bar Chart
+            const revCtx = document.getElementById('revenueChart').getContext('2d');
+            new Chart(revCtx, {
+                type: 'bar',
+                data: {
+                    labels: revData.labels,
+                    datasets: [{
+                        label: 'Revenue (₹)',
+                        data: revData.data,
+                        backgroundColor: '#FF385C',
+                        borderRadius: 6,
+                        barThickness: 'flex',
+                        maxBarThickness: 40
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { borderDash: [5, 5] },
+                            ticks: {
+                                callback: function(value) {
+                                    if(value >= 1000) return '₹' + (value/1000) + 'k';
+                                    return '₹' + value;
+                                }
+                            }
+                        },
+                        x: { grid: { display: false } }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            // 2. Category Doughnut Chart
+            const catCtx = document.getElementById('categoryChart').getContext('2d');
+            new Chart(catCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: catData.labels,
+                    datasets: [{
+                        data: catData.data,
+                        backgroundColor: [
+                            '#FF385C', '#3498db', '#f1c40f', '#2ecc71', '#9b59b6', '#e67e22', '#1abc9c'
+                        ],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '65%',
+                    plugins: {
+                        legend: { position: 'right', labels: { usePointStyle: true, boxWidth: 8 } }
+                    }
+                }
+            });
+        });
+    </script>

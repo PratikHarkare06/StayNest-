@@ -1,0 +1,748 @@
+<%- layout("/layouts/boilerplate") %>
+
+    <div class="container mt-4 mb-5">
+        <!-- Cinematic Hero Image -->
+        <div class="position-relative mb-5">
+            <img src="<%= listing.image.url %>" class="w-100 rounded-4 shadow-sm object-fit-cover" alt="listing_image"
+                style="height: 60vh; max-height: 600px;">
+
+            <!-- Wishlist Heart Button Overlay -->
+            <!-- Share & Wishlist Overlay -->
+            <div class="position-absolute top-0 end-0 p-4 d-flex gap-2">
+                <button class="btn btn-light rounded-circle shadow-sm hover-scale" onclick="shareListing()"
+                    style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; transition: all 0.2s;"
+                    title="Share">
+                    <i class="fa-solid fa-share-nodes"></i>
+                </button>
+
+                <% if(currUser) { %>
+                    <form action="/users/wishlist/<%= listing._id %>" method="POST" class="d-inline wishlist-form">
+                        <button class="btn btn-light rounded-circle shadow-sm hover-scale"
+                            style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; transition: all 0.2s;">
+                            <i
+                                class="<%= currUser.wishlist.some(id => id.toString() === listing._id.toString()) ? 'fa-solid text-danger' : 'fa-regular' %> fa-heart fa-xl"></i>
+                        </button>
+                    </form>
+                    <% } %>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Main Content (Left) -->
+            <div class="col-lg-8 pe-lg-5">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h1 class="fw-bold mb-2">
+                            <%= listing.title %>
+                        </h1>
+                        <p class="text-muted fs-5 mb-0">
+                            <i class="fa-solid fa-location-dot text-danger me-2"></i>
+                            <%= listing.location %>, <%= listing.country %>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center justify-content-between py-4 border-top border-bottom mb-4">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            <div class="rounded-circle bg-dark text-white d-flex align-items-center justify-content-center fw-bold fs-4"
+                                style="width: 56px; height: 56px;">
+                                <%= listing.owner.username.charAt(0).toUpperCase() %>
+                            </div>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-0">Hosted by <%= listing.owner.username %>
+                            </h5>
+                            <p class="text-muted mb-0 small">Superhost &middot; 2 years hosting</p>
+                        </div>
+                    </div>
+                    <% if(currUser && !currUser._id.equals(listing.owner._id)) { %>
+                        <a href="/messages/<%= listing.owner._id %>" class="btn btn-outline-dark rounded-pill fw-bold" style="white-space: nowrap;"><i class="fa-regular fa-comment-dots me-2"></i> Message Host</a>
+                    <% } %>
+                </div>
+
+                <div class="mb-5">
+                    <p class="lead" style="line-height: 1.8; color: #484848;">
+                        <%= listing.description %>
+                    </p>
+                </div>
+
+                <!-- Owner Actions -->
+                <% if(currUser && currUser._id.equals(listing.owner._id)) { %>
+                    <div class="mb-5 p-4 bg-light rounded-4 border">
+                        <h5 class="fw-bold mb-3">Host Controls</h5>
+                        <a href="/listings/<%= listing._id %>/edit" class="btn btn-dark me-2 rounded-pill px-4">Edit
+                            Listing</a>
+                        <form method="POST" action="/listings/<%= listing._id %>?_method=DELETE" class="d-inline">
+                            <button class="btn btn-outline-danger rounded-pill px-4">Delete Listing</button>
+                        </form>
+                    </div>
+                    <% } %>
+
+                        <hr class="my-5" />
+
+                        <!-- Map Section -->
+                        <div class="mb-5">
+                            <h3 class="fw-bold mb-4">Where you'll be</h3>
+                            <div id="map" class="rounded-4 shadow-sm"
+                                style="height: 480px; width: 100%; background-color: #f0f0f0; position: relative;">
+                            </div>
+                        </div>
+
+                        <hr class="my-5" />
+
+                        <!-- Reviews Section -->
+                        <div class="mb-5">
+                            <h3 class="fw-bold mb-4"><i class="fa-solid fa-star text-warning me-2"></i> Reviews</h3>
+
+                            <!-- Rating Breakdown Section -->
+                            <% if(listing.reviews && listing.reviews.length> 0) {
+                                // Calculate ratings
+                                let totalRatings = listing.reviews.length;
+                                let sumRatings = listing.reviews.reduce((acc, curr) => acc + curr.rating, 0);
+                                let avgRating = (sumRatings / totalRatings).toFixed(1);
+
+                                let starCounts = {5:0, 4:0, 3:0, 2:0, 1:0};
+                                listing.reviews.forEach(r => {
+                                if(r.rating >= 1 && r.rating <= 5) { starCounts[r.rating]++; } }); %>
+                                    <div class="rating-overview">
+                                        <div class="rating-overview-header">
+                                            <!-- Overall Score -->
+                                            <div class="rating-score">
+                                                <div class="rating-score-number">
+                                                    <%= avgRating %>
+                                                </div>
+                                                <div class="rating-score-stars">
+                                                    <% for(let i=1; i<=5; i++) { %>
+                                                        <i
+                                                            class="fa-solid fa-star <%= i <= Math.round(avgRating) ? '' : 'text-secondary opacity-25' %>"></i>
+                                                        <% } %>
+                                                </div>
+                                                <div class="rating-score-label">
+                                                    <%= totalRatings %> reviews
+                                                </div>
+                                            </div>
+
+                                            <!-- Rating Bars -->
+                                            <div class="rating-breakdown">
+                                                <% for(let stars=5; stars>=1; stars--) {
+                                                    let percent = (starCounts[stars] / totalRatings) * 100;
+                                                    %>
+                                                    <div class="rating-bar-row">
+                                                        <div class="rating-bar-label">
+                                                            <%= stars %> <i class="fa-solid fa-star"></i>
+                                                        </div>
+                                                        <div class="rating-bar-container">
+                                                            <div class="rating-bar-fill animated"
+                                                                style="--bar-width: <%= percent %>%; width: 0;"></div>
+                                                        </div>
+                                                        <div class="rating-bar-percentage">
+                                                            <%= Math.round(percent) %>%
+                                                        </div>
+                                                    </div>
+                                                    <% } %>
+                                            </div>
+                                        </div>
+
+                                        <!-- Categories (Derived from overall rating for demo) -->
+                                        <div class="rating-categories">
+                                            <div class="rating-category">
+                                                <div class="rating-category-name"><i
+                                                        class="fa-solid fa-spray-can-sparkles"></i> Cleanliness</div>
+                                                <div class="rating-category-score">
+                                                    <%= avgRating %>
+                                                </div>
+                                            </div>
+                                            <div class="rating-category">
+                                                <div class="rating-category-name"><i
+                                                        class="fa-regular fa-circle-check"></i> Accuracy</div>
+                                                <div class="rating-category-score">
+                                                    <%= avgRating %>
+                                                </div>
+                                            </div>
+                                            <div class="rating-category">
+                                                <div class="rating-category-name"><i class="fa-solid fa-key"></i>
+                                                    Check-in</div>
+                                                <div class="rating-category-score">5.0</div>
+                                            </div>
+                                            <div class="rating-category">
+                                                <div class="rating-category-name"><i class="fa-regular fa-message"></i>
+                                                    Communication</div>
+                                                <div class="rating-category-score">
+                                                    <%= avgRating %>
+                                                </div>
+                                            </div>
+                                            <div class="rating-category">
+                                                <div class="rating-category-name"><i
+                                                        class="fa-solid fa-map-location-dot"></i> Location</div>
+                                                <div class="rating-category-score">
+                                                    <%= avgRating %>
+                                                </div>
+                                            </div>
+                                            <div class="rating-category">
+                                                <div class="rating-category-name"><i class="fa-solid fa-tag"></i> Value
+                                                </div>
+                                                <div class="rating-category-score">
+                                                    <%= avgRating %>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <% } %>
+
+                                        <% if(currUser) { %>
+                                            <div class="card bg-light border-0 rounded-4 p-4 mb-5">
+                                                <h5 class="fw-bold mb-3">Leave a Review</h5>
+                                                <form method="POST" action="/listings/<%= listing._id %>/reviews"
+                                                    novalidate class="needs-validation">
+                                                    <div class="mb-3">
+                                                        <label
+                                                            class="form-label small fw-bold text-uppercase text-muted">Rating</label>
+                                                        <fieldset class="starability-slot">
+                                                            <input type="radio" id="no-rate" class="input-no-rate"
+                                                                name="review[rating]" value="1" checked
+                                                                aria-label="No rating." />
+                                                            <input type="radio" id="first-rate1" name="review[rating]"
+                                                                value="1" />
+                                                            <label for="first-rate1" title="Terrible">1 star</label>
+                                                            <input type="radio" id="first-rate2" name="review[rating]"
+                                                                value="2" />
+                                                            <label for="first-rate2" title="Not good">2 stars</label>
+                                                            <input type="radio" id="first-rate3" name="review[rating]"
+                                                                value="3" />
+                                                            <label for="first-rate3" title="Average">3 stars</label>
+                                                            <input type="radio" id="first-rate4" name="review[rating]"
+                                                                value="4" />
+                                                            <label for="first-rate4" title="Very good">4 stars</label>
+                                                            <input type="radio" id="first-rate5" name="review[rating]"
+                                                                value="5" />
+                                                            <label for="first-rate5" title="Amazing">5 stars</label>
+                                                        </fieldset>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label for="comment"
+                                                            class="form-label small fw-bold text-uppercase text-muted">Comments</label>
+                                                        <textarea class="form-control rounded-4 p-3" id="comment"
+                                                            name="review[comment]" rows="3" required
+                                                            placeholder="Share your experience..."></textarea>
+                                                        <div class="invalid-feedback">Please add some comments.</div>
+                                                    </div>
+                                                    <button class="btn btn-dark rounded-pill px-4 fw-bold">Submit
+                                                        Review</button>
+                                                </form>
+                                            </div>
+                                            <% } %>
+
+                                                <% if(listing.reviews.length> 0) { %>
+                                                    <div class="row">
+                                                        <% for (review of listing.reviews) { %>
+                                                            <div class="col-md-6 mb-4">
+                                                                <div
+                                                                    class="card h-100 p-4 border rounded-4 review-card shadow-sm">
+                                                                    <div class="d-flex justify-content-between mb-2">
+                                                                        <div class="d-flex align-items-center">
+                                                                            <div class="rounded-circle bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center me-3"
+                                                                                style="width: 40px; height: 40px;">
+                                                                                <i
+                                                                                    class="fa-solid fa-user text-muted"></i>
+                                                                            </div>
+                                                                            <div>
+                                                                                <h6 class="fw-bold mb-0">@<%=
+                                                                                        review.author ?
+                                                                                        review.author.username
+                                                                                        : "Anonymous" %>
+                                                                                </h6>
+                                                                                <small class="text-muted">Verified
+                                                                                    User</small>
+                                                                            </div>
+                                                                        </div>
+                                                                        <% if(currUser && review.author &&
+                                                                            currUser._id.equals(review.author._id)) { %>
+                                                                            <form method="POST"
+                                                                                action="/listings/<%= listing._id %>/reviews/<%= review._id %>?_method=DELETE">
+                                                                                <button
+                                                                                    class="btn btn-sm btn-outline-danger border-0 rounded-circle p-2"><i
+                                                                                        class="fa-solid fa-trash"></i></button>
+                                                                            </form>
+                                                                            <% } %>
+                                                                    </div>
+                                                                    <p class="starability-result my-2"
+                                                                        data-rating="<%= review.rating %>"></p>
+                                                                    <p class="text-muted mb-0">
+                                                                        <%= review.comment %>
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                            <% } %>
+                                                    </div>
+                                                    <% } else { %>
+                                                        <div class="text-center py-5 bg-light rounded-4">
+                                                            <i
+                                                                class="fa-regular fa-comment-dots fa-3x text-muted mb-3 opacity-50"></i>
+                                                            <p class="text-muted fw-bold">No reviews yet. Be the first
+                                                                to share your
+                                                                experience!</p>
+                                                        </div>
+                                                        <% } %>
+                        </div>
+            </div>
+
+            <!-- Sticky Sidebar (Right) -->
+            <div class="col-lg-4">
+                <div class="sticky-top" style="top: 100px; z-index: 10;">
+                    <% if(currUser && !currUser._id.equals(listing.owner._id)) { %>
+                        <div class="card shadow-lg border-0 rounded-4">
+                            <div class="p-4 bg-white">
+                                <div class="d-flex justify-content-between align-items-end mb-4">
+                                    <h3 class="fw-bold mb-0">&#8377;<%= listing.price.toLocaleString("en-IN") %>
+                                    </h3>
+                                    <span class="text-muted mb-1 text-decoration-line-through me-2 small"></span>
+                                    <span class="text-muted mb-1">/ night</span>
+                                </div>
+
+                                <form action="/listings/<%= listing._id %>/bookings" method="POST">
+                                    <div class="row g-0 border rounded-4 mb-3 overflow-hidden">
+                                        <div class="col-6 border-end">
+                                            <div class="p-3">
+                                                <label class="small fw-bold text-uppercase text-muted d-block mb-1"
+                                                    style="font-size: 0.7rem;">Check-in</label>
+                                                <input type="date" id="checkIn" name="booking[checkIn]"
+                                                    class="form-control border-0 p-0 shadow-none fw-bold text-dark w-100"
+                                                    required min="<%= new Date().toISOString().split('T')[0] %>">
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="p-3">
+                                                <label class="small fw-bold text-uppercase text-muted d-block mb-1"
+                                                    style="font-size: 0.7rem;">Check-out</label>
+                                                <input type="date" id="checkOut" name="booking[checkOut]"
+                                                    class="form-control border-0 p-0 shadow-none fw-bold text-dark w-100"
+                                                    required min="<%= new Date().toISOString().split('T')[0] %>">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Guests Section -->
+                                    <div class="border rounded-4 mb-3 position-relative">
+                                        <div class="p-3 cursor-pointer" id="bookingGuestSection"
+                                            onclick="toggleBookingGuestPopup()">
+                                            <label class="small fw-bold text-uppercase text-muted d-block mb-1"
+                                                style="font-size: 0.7rem;">GUESTS</label>
+                                            <div class="fw-bold text-dark" id="bookingGuestDisplay">1 guest</div>
+                                            <i
+                                                class="fa-solid fa-chevron-down position-absolute end-0 top-50 translate-middle-y me-3 text-muted"></i>
+                                        </div>
+
+                                        <!-- Guest Popup -->
+                                        <div class="booking-guest-popup position-absolute bg-white shadow-lg p-4 rounded-4 mt-2 end-0 d-none"
+                                            style="width: 400px; z-index: 1000; top: 100%;">
+                                            <!-- Adults -->
+                                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                                <div>
+                                                    <div class="fw-bold fs-6">Adults</div>
+                                                    <div class="text-muted small">Ages 13 or above</div>
+                                                </div>
+                                                <div class="d-flex align-items-center gap-3">
+                                                    <button type="button"
+                                                        class="btn btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center p-0 border-opacity-25"
+                                                        style="width: 32px; height: 32px;"
+                                                        onclick="updateBookingGuest('adults', -1)">
+                                                        <i class="fa-solid fa-minus small"></i>
+                                                    </button>
+                                                    <span class="fw-bold" id="booking-count-adults">1</span>
+                                                    <button type="button"
+                                                        class="btn btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center p-0 border-opacity-25"
+                                                        style="width: 32px; height: 32px;"
+                                                        onclick="updateBookingGuest('adults', 1)">
+                                                        <i class="fa-solid fa-plus small"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <hr class="text-muted opacity-25 my-3">
+
+                                            <!-- Children -->
+                                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                                <div>
+                                                    <div class="fw-bold fs-6">Children</div>
+                                                    <div class="text-muted small">Ages 2–12</div>
+                                                </div>
+                                                <div class="d-flex align-items-center gap-3">
+                                                    <button type="button"
+                                                        class="btn btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center p-0 border-opacity-25"
+                                                        style="width: 32px; height: 32px;"
+                                                        onclick="updateBookingGuest('children', -1)">
+                                                        <i class="fa-solid fa-minus small"></i>
+                                                    </button>
+                                                    <span class="fw-bold" id="booking-count-children">0</span>
+                                                    <button type="button"
+                                                        class="btn btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center p-0 border-opacity-25"
+                                                        style="width: 32px; height: 32px;"
+                                                        onclick="updateBookingGuest('children', 1)">
+                                                        <i class="fa-solid fa-plus small"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <hr class="text-muted opacity-25 my-3">
+
+                                            <!-- Infants -->
+                                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                                <div>
+                                                    <div class="fw-bold fs-6">Infants</div>
+                                                    <div class="text-muted small">Under 2</div>
+                                                </div>
+                                                <div class="d-flex align-items-center gap-3">
+                                                    <button type="button"
+                                                        class="btn btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center p-0 border-opacity-25"
+                                                        style="width: 32px; height: 32px;"
+                                                        onclick="updateBookingGuest('infants', -1)">
+                                                        <i class="fa-solid fa-minus small"></i>
+                                                    </button>
+                                                    <span class="fw-bold" id="booking-count-infants">0</span>
+                                                    <button type="button"
+                                                        class="btn btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center p-0 border-opacity-25"
+                                                        style="width: 32px; height: 32px;"
+                                                        onclick="updateBookingGuest('infants', 1)">
+                                                        <i class="fa-solid fa-plus small"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <hr class="text-muted opacity-25 my-3">
+
+                                            <!-- Pets -->
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <div class="fw-bold fs-6">Pets</div>
+                                                    <div
+                                                        class="text-muted small text-decoration-underline cursor-pointer">
+                                                        Bringing a service animal?</div>
+                                                </div>
+                                                <div class="d-flex align-items-center gap-3">
+                                                    <button type="button"
+                                                        class="btn btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center p-0 border-opacity-25"
+                                                        style="width: 32px; height: 32px;"
+                                                        onclick="updateBookingGuest('pets', -1)">
+                                                        <i class="fa-solid fa-minus small"></i>
+                                                    </button>
+                                                    <span class="fw-bold" id="booking-count-pets">0</span>
+                                                    <button type="button"
+                                                        class="btn btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center p-0 border-opacity-25"
+                                                        style="width: 32px; height: 32px;"
+                                                        onclick="updateBookingGuest('pets', 1)">
+                                                        <i class="fa-solid fa-plus small"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Hidden inputs for guest counts -->
+                                    <input type="hidden" name="booking[adults]" id="booking-input-adults" value="1">
+                                    <input type="hidden" name="booking[children]" id="booking-input-children" value="0">
+                                    <input type="hidden" name="booking[infants]" id="booking-input-infants" value="0">
+                                    <input type="hidden" name="booking[pets]" id="booking-input-pets" value="0">
+
+                                    <div id="priceBreakdown" class="d-none mb-3">
+                                        <div class="d-flex justify-content-between text-muted mb-2">
+                                            <span>&#8377;<%= listing.price.toLocaleString("en-IN") %> x <span
+                                                        id="totalNights">0</span> nights</span>
+                                            <span>&#8377;<span id="totalPrice">0</span></span>
+                                        </div>
+                                        <div class="d-flex justify-content-between text-muted mb-3">
+                                            <span>Service fee</span>
+                                            <span>&#8377;0</span>
+                                        </div>
+                                        <hr>
+                                        <div class="d-flex justify-content-between fw-bold fs-5">
+                                            <span>Total</span>
+                                            <span>&#8377;<span id="totalPriceDisplay"></span></span>
+                                        </div>
+                                    </div>
+
+                                    <div id="pricePerNight" data-price="<%= listing.price %>"></div>
+
+                                    <button class="btn btn-danger w-100 py-3 rounded-pill fw-bold shadow-sm mt-2"
+                                        style="background: #FF385C; border: none; font-size: 1.1rem; transition: transform 0.2s;">
+                                        Reserve
+                                    </button>
+                                </form>
+
+                                <div class="text-center mt-3">
+                                    <small class="text-muted"><i class="fa-solid fa-shield-halved me-1"></i> You won't
+                                        be charged yet</small>
+                                </div>
+                            </div>
+                        </div>
+                        <% } else if (!currUser) { %>
+                            <div class="card shadow-lg border-0 rounded-4 p-4 text-center">
+                                <h4 class="fw-bold mb-3">Start your journey</h4>
+                                <p class="text-muted mb-4">Sign in to book this stay and manage your trips.</p>
+                                <a href="/login" class="btn btn-danger w-100 rounded-pill fw-bold py-2">Login to
+                                    Book</a>
+                            </div>
+                            <% } else { %>
+                                <div class="card shadow-lg border-0 rounded-4 p-4 text-center">
+                                    <div class="mb-3">
+                                        <i class="fa-solid fa-user-shield fa-3x text-muted opacity-25"></i>
+                                    </div>
+                                    <h5 class="fw-bold">Manage Listing</h5>
+                                    <p class="text-muted small mb-4">Check your dashboard for insights.</p>
+                                    <div class="d-grid gap-2">
+                                        <a href="/listings/<%= listing._id %>/edit"
+                                            class="btn btn-outline-dark rounded-pill fw-bold">Edit Details</a>
+                                    </div>
+                                </div>
+                                <% } %>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recommendation Section -->
+        <% if(typeof similarListings !=='undefined' && similarListings.length> 0) { %>
+            <hr class="my-5">
+            <div class="mt-5 mb-5 pb-5">
+                <h3 class="fw-bold mb-4">You might also like</h3>
+                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                    <% for(let sListing of similarListings) { %>
+                        <div class="col">
+                            <a href="/listings/<%= sListing._id %>" class="text-decoration-none remove-link-style">
+                                <div class="card h-100 border-0 bg-transparent card-hover-effect">
+                                    <div class="position-relative overflow-hidden rounded-4">
+                                        <img src="<%= sListing.image.url %>"
+                                            class="card-img-top rounded-4 object-fit-cover transition-scale"
+                                            style="height: 250px; width: 100%;">
+                                    </div>
+                                    <div class="card-body px-0 pt-3">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <h6 class="fw-bold text-dark mb-1 text-truncate"
+                                                    style="max-width: 200px;">
+                                                    <%= sListing.title %>
+                                                </h6>
+                                                <p class="text-muted small mb-1">
+                                                    <%= sListing.location %>
+                                                </p>
+                                            </div>
+                                            <div class="d-flex align-items-center">
+                                                <i class="fa-solid fa-star text-dark small me-1"></i>
+                                                <span class="small">New</span>
+                                            </div>
+                                        </div>
+                                        <p class="mt-1 text-dark">
+                                            <span class="fw-bold">&#8377;<%= sListing.price.toLocaleString("en-IN") %>
+                                            </span> <span class="text-muted fw-normal">night</span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        <% } %>
+                </div>
+            </div>
+            <% } %>
+
+                <!-- Mobile Sticky Booking Bar -->
+                <div class="mobile-booking-bar" id="mobileBookingBar">
+                    <div class="mobile-booking-content">
+                        <div class="mobile-booking-price">
+                            <div class="mobile-booking-price-amount">
+                                &#8377;<%= listing.price.toLocaleString("en-IN") %>
+                                    <span class="mobile-booking-price-label">/ night</span>
+                            </div>
+                            <% if(listing.reviews && listing.reviews.length> 0) {
+                                const avgRating = (listing.reviews.reduce((sum, r) => sum + r.rating, 0) /
+                                listing.reviews.length).toFixed(1);
+                                %>
+                                <div class="mobile-booking-rating">
+                                    <i class="fa-solid fa-star"></i>
+                                    <span>
+                                        <%= avgRating %>
+                                    </span>
+                                    <span>(<%= listing.reviews.length %>)</span>
+                                </div>
+                                <% } %>
+                        </div>
+                        <button class="mobile-booking-btn" onclick="scrollToBooking()">
+                            Reserve
+                        </button>
+                    </div>
+                </div>
+    </div>
+
+    <!-- Flatpickr -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+    <script>
+        // Booking Guest Counter Logic
+        const bookingGuests = { adults: 1, children: 0, infants: 0, pets: 0 };
+
+        function toggleBookingGuestPopup() {
+            const popup = document.querySelector('.booking-guest-popup');
+            popup.classList.toggle('d-none');
+        }
+
+        function updateBookingGuest(type, change) {
+            // Prevent adults from going below 1
+            if (type === 'adults' && bookingGuests[type] + change < 1) return;
+            // Prevent other counts from going below 0
+            if (bookingGuests[type] + change < 0) return;
+
+            bookingGuests[type] += change;
+            document.getElementById(`booking-count-${type}`).innerText = bookingGuests[type];
+
+            // Update Hidden Input
+            const hiddenInput = document.getElementById(`booking-input-${type}`);
+            if (hiddenInput) hiddenInput.value = bookingGuests[type];
+
+            updateBookingGuestDisplay();
+        }
+
+        function updateBookingGuestDisplay() {
+            const totalGuests = bookingGuests.adults + bookingGuests.children;
+            const totalInfants = bookingGuests.infants;
+            const totalPets = bookingGuests.pets;
+
+            let arr = [];
+            if (totalGuests > 0) arr.push(`${totalGuests} guest${totalGuests !== 1 ? 's' : ''}`);
+            if (totalInfants > 0) arr.push(`${totalInfants} infant${totalInfants !== 1 ? 's' : ''}`);
+            if (totalPets > 0) arr.push(`${totalPets} pet${totalPets !== 1 ? 's' : ''}`);
+
+            const display = document.getElementById('bookingGuestDisplay');
+            if (display) {
+                display.innerText = arr.length > 0 ? arr.join(', ') : '1 guest';
+            }
+        }
+
+        // Close popup when clicking outside
+        document.addEventListener('click', function (e) {
+            const guestSection = document.getElementById('bookingGuestSection');
+            const popup = document.querySelector('.booking-guest-popup');
+
+            if (popup && !popup.classList.contains('d-none')) {
+                if (!guestSection.contains(e.target) && !popup.contains(e.target)) {
+                    popup.classList.add('d-none');
+                }
+            }
+        });
+    </script>
+
+    <!-- Store listing data in JSON script tag (safer than inline) -->
+    <script id="listing-data" type="application/json">
+        <%- JSON.stringify(listing) %>
+    </script>
+
+    <script id="bookings-data" type="application/json">
+        <%- JSON.stringify(bookings || []) %>
+    </script>
+
+    <script>
+        // Parse listing data from JSON script tag
+        const listingDataElement = document.getElementById('listing-data');
+        const listing = listingDataElement ? JSON.parse(listingDataElement.textContent) : null;
+
+        const bookingsDataElement = document.getElementById('bookings-data');
+        const bookings = bookingsDataElement ? JSON.parse(bookingsDataElement.textContent) : [];
+
+        const mapToken = "<%- mapToken %>";
+
+        console.log("Listing data loaded:", listing);
+        console.log("Bookings data loaded:", bookings);
+
+        // Convert bookings to disable format for Flatpickr
+        const blockedDates = bookings.map(booking => {
+            return {
+                from: new Date(booking.checkIn),
+                to: new Date(booking.checkOut)
+            };
+        });
+
+        // Initialize Flatpickr
+        const checkInPicker = flatpickr("#checkIn", {
+            minDate: "today",
+            disable: blockedDates,
+            dateFormat: "Y-m-d",
+            onChange: function (selectedDates, dateStr, instance) {
+                if (selectedDates.length > 0) {
+                    // Set checkout min date to checkin date + 1
+                    const minOutDate = new Date(selectedDates[0]);
+                    minOutDate.setDate(minOutDate.getDate() + 1);
+                    checkOutPicker.set('minDate', minOutDate);
+                    checkOutPicker.open(); // Auto open checkout
+                }
+            }
+        });
+
+        const checkOutPicker = flatpickr("#checkOut", {
+            minDate: "today", // Will be updated
+            disable: blockedDates,
+            dateFormat: "Y-m-d"
+        });
+    </script>
+
+    <script src="/js/map.js"></script>
+    <script src="/js/booking.js"></script>
+    <script>
+        function shareListing() {
+            if (navigator.share) {
+                navigator.share({
+                    title: '<%= listing.title %>',
+                    text: 'Check out this amazing place on Wanderlust!',
+                    url: window.location.href,
+                })
+                    .catch((error) => console.log('Error sharing', error));
+            } else {
+                navigator.clipboard.writeText(window.location.href);
+                toastSuccess('Link Copied!', 'The listing link has been copied to your clipboard.');
+            }
+        }
+
+        // ===== MOBILE STICKY BOOKING BAR LOGIC =====
+        function scrollToBooking() {
+            const bookingCard = document.querySelector('.card.shadow-lg');
+            if (bookingCard) {
+                bookingCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                // Add a subtle highlight effect
+                bookingCard.style.transition = 'box-shadow 0.3s ease';
+                bookingCard.style.boxShadow = '0 0 0 3px rgba(255, 56, 92, 0.3)';
+                setTimeout(() => {
+                    bookingCard.style.boxShadow = '';
+                }, 2000);
+            }
+        }
+
+        // Show/hide sticky bar based on scroll position
+        document.addEventListener('DOMContentLoaded', function () {
+            const mobileBar = document.getElementById('mobileBookingBar');
+            const heroImage = document.querySelector('.position-relative.mb-5');
+            let lastScrollTop = 0;
+            let isBarVisible = false;
+
+            if (!mobileBar || !heroImage) return;
+
+            // Only run on mobile
+            if (window.innerWidth > 768) return;
+
+            window.addEventListener('scroll', function () {
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                const heroBottom = heroImage.offsetTop + heroImage.offsetHeight;
+
+                // Show bar when scrolled past hero image
+                if (scrollTop > heroBottom && !isBarVisible) {
+                    mobileBar.classList.add('visible');
+                    document.body.classList.add('has-mobile-booking');
+                    isBarVisible = true;
+                }
+                // Hide bar when scrolled back to top
+                else if (scrollTop <= heroBottom && isBarVisible) {
+                    mobileBar.classList.remove('visible');
+                    document.body.classList.remove('has-mobile-booking');
+                    isBarVisible = false;
+                }
+
+                lastScrollTop = scrollTop;
+            });
+        });
+    </script>

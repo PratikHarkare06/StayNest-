@@ -1,0 +1,1927 @@
+/* =========================================
+   1. GLOBAL VARIABLES & RESET
+   ========================================= */
+:root {
+  --primary: #ff385c;
+  --primary-hover: #d50027;
+  --secondary: #008489;
+  --dark: #222222;
+  --gray: #717171;
+  --light: #f7f7f7;
+  --white: #ffffff;
+  --border-radius-lg: 16px;
+  --border-radius-md: 12px;
+  --border-radius-sm: 8px;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 6px 16px rgba(0, 0, 0, 0.12);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.15);
+  --font-main: 'Plus Jakarta Sans', "Roboto", sans-serif;
+  --transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+}
+
+body {
+  font-family: var(--font-main) !important;
+  color: var(--dark);
+  background-color: var(--white);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 700 !important;
+  letter-spacing: -0.02em;
+}
+
+.container {
+  flex: 1;
+}
+
+/* =========================================
+   2. NAVBAR & HEADER
+   ========================================= */
+.navbar {
+  height: 5rem;
+  background-color: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  z-index: 1050;
+  transition: all 0.3s ease;
+}
+
+/* Floating Map Button (Mobile) */
+.floating-map-btn {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%) scale(1);
+  z-index: 1000;
+  background-color: #222 !important;
+  color: white !important;
+  border-radius: 50px !important;
+  padding: 0.8rem 1.5rem !important;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  display: flex !important;
+  /* Force display for functionality check, adjust media query below */
+  align-items: center;
+  gap: 0.5rem;
+  transition: transform 0.2s;
+  border: none;
+}
+
+.floating-map-btn:active {
+  transform: translateX(-50%) scale(0.95);
+}
+
+.floating-map-btn:hover {
+  background-color: black !important;
+  color: white !important;
+}
+
+/* Only show on Mobile/Tablet */
+@media (min-width: 769px) {
+  .floating-map-btn {
+    display: none !important;
+  }
+}
+
+.navbar-brand {
+  display: flex;
+  align-items: center;
+}
+
+.fa-compass {
+  color: var(--primary);
+  font-size: 2.2rem;
+  transition: transform 0.3s ease;
+}
+
+.fa-compass:hover {
+  transform: rotate(45deg);
+}
+
+.nav-link {
+  color: var(--dark) !important;
+  font-weight: 500;
+  padding: 0.5rem 1rem !important;
+  transition: var(--transition);
+  border-radius: 20px;
+}
+
+.nav-link:hover {
+  background-color: var(--light);
+  color: var(--dark) !important;
+}
+
+/* Search Bar */
+.search-input {
+  border-radius: 50px !important;
+  padding: 0.6rem 1.5rem;
+  font-size: 0.95rem;
+  border: 1px solid #dddddd;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  transition: var(--transition);
+  background: var(--white);
+  color: var(--dark);
+}
+
+.search-input:focus {
+  border-color: var(--gray);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  outline: none;
+}
+
+.search-btn {
+  background-color: var(--primary) !important;
+  color: white !important;
+  border-radius: 50px !important;
+  padding: 0.6rem 1.2rem;
+  border: none !important;
+  font-weight: 600;
+  margin-left: -45px;
+  /* Overlap button */
+  z-index: 10;
+  box-shadow: var(--shadow-sm);
+}
+
+.search-btn:hover {
+  background-color: var(--primary-hover) !important;
+  transform: scale(1.03);
+}
+
+/* =========================================
+   3. CARDS & LISTINGS
+   ========================================= */
+.card-img-top {
+  border-radius: var(--border-radius-lg) !important;
+  width: 100%;
+  aspect-ratio: 20/19;
+  /* Consistent aspect ratio */
+  object-fit: cover !important;
+  background-color: #e0e0e0;
+  transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  /* Smooth easing */
+}
+
+/* Card Hover Effect: Zoom Image */
+.listing-card:hover .card-img-top {
+  transform: scale(1.03);
+  /* Subtle zoom */
+}
+
+.listing-card {
+  border: none !important;
+  margin-bottom: 2rem;
+  background: transparent;
+  transition: var(--transition) !important;
+  overflow: hidden;
+  /* Contain the zoom */
+  border-radius: var(--border-radius-lg);
+  /* Ensure border radius is kept during zoom */
+  transform: translateZ(0);
+  /* Performance optimization */
+}
+
+/* Heart Pop Animation */
+@keyframes heartPop {
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.3);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+.card-img-overlay button:active i {
+  animation: heartPop 0.3s ease-out;
+}
+
+
+.listing-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+.card-body {
+  padding: 0.75rem 0 !important;
+}
+
+.card-text {
+  line-height: 1.4;
+}
+
+.card-text b {
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+
+/* Heart Button in Overlay */
+.card-img-overlay button {
+  transition: transform 0.2s;
+}
+
+.card-img-overlay button:hover {
+  transform: scale(1.1);
+}
+
+.card-img-overlay button:active {
+  transform: scale(0.9);
+}
+
+/* =========================================
+   4. FILTERS & MAP
+   ========================================= */
+/* Main Sticky Container */
+#filters-main-container {
+  box-shadow: 0 4px 6px -6px rgba(0, 0, 0, 0.1);
+  top: 4.8rem !important;
+  /* Adjust based on navbar height */
+  padding: 0.5rem 0;
+}
+
+#filters {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  align-items: center;
+  gap: 2rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  /* Firefox */
+  -ms-overflow-style: none;
+  /* IE 10+ */
+  padding: 0.5rem 0;
+  margin-bottom: 0;
+}
+
+#filters::-webkit-scrollbar {
+  display: none;
+  /* Chrome/Safari/Webkit */
+}
+
+/* Right-side Toggles Container */
+.tax-toggle {
+  display: flex !important;
+  align-items: center;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  height: 3.25rem;
+  padding: 0 1rem;
+  flex-shrink: 0;
+  background: white;
+  transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+  cursor: pointer;
+}
+
+.tax-toggle:hover {
+  border-color: #222;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  /* Subtle shadow */
+}
+
+.tax-toggle .form-check-input {
+  width: 2.5rem !important;
+  height: 1.5rem !important;
+  margin-left: 0.75rem !important;
+  cursor: pointer;
+  background-color: #b0b0b0;
+  border-color: #b0b0b0;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23fff'/%3e%3c/svg%3e");
+}
+
+.tax-toggle .form-check-input:checked {
+  background-color: #222 !important;
+  /* Airbnb uses black for toggles */
+  border-color: #222 !important;
+}
+
+.tax-toggle .form-check-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #222;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+/* Ensure filter items don't shrink */
+.filter {
+  text-align: center;
+  opacity: 0.6;
+  text-decoration: none;
+  color: var(--gray);
+  cursor: pointer;
+  transition: var(--transition);
+  padding-bottom: 5px;
+  border-bottom: 2px solid transparent;
+  flex-shrink: 0;
+  min-width: 60px;
+}
+
+.filter:hover {
+  opacity: 1;
+  color: var(--dark);
+  border-bottom: 2px solid var(--gray);
+}
+
+.filter div {
+  font-size: 1.5rem;
+  margin-bottom: 0.3rem;
+}
+
+.filter p {
+  font-size: 0.8rem;
+  font-weight: 500;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.tax-info {
+  display: none;
+}
+
+/* Map */
+#map,
+#cluster-map {
+  width: 100%;
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+}
+
+/* =========================================
+   5. SHOW PAGE & DETAILS
+   ========================================= */
+.show-img {
+  border-radius: var(--border-radius-lg);
+}
+
+/* Buttons */
+.btn-primary,
+.add-btn,
+.edit-btn {
+  background-color: var(--primary);
+  border: none;
+  font-weight: 600;
+  padding: 0.6rem 1.4rem;
+  border-radius: 8px;
+  transition: var(--transition);
+}
+
+.btn-primary:hover,
+.add-btn:hover,
+.edit-btn:hover {
+  background-color: var(--primary-hover);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-dark {
+  background-color: var(--dark);
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+.btn-outline-dark {
+  border-width: 1px;
+  border-color: var(--dark);
+  color: var(--dark);
+  font-weight: 600;
+}
+
+.btn-outline-dark:hover {
+  background-color: var(--light);
+  color: var(--dark);
+  border-color: var(--dark);
+}
+
+/* Starability Adjustments */
+.starability-slot {
+  min-height: 2.5em;
+  /* Prevent layout shift */
+}
+
+/* =========================================
+   6. FOOTER
+   ========================================= */
+footer {
+  margin-top: auto;
+  border-top: 1px solid #ebebeb;
+  background-color: var(--light);
+}
+
+.f-info {
+  text-align: center;
+  padding: 1.5rem;
+  color: var(--dark);
+}
+
+.f-info-socials i {
+  font-size: 1.25rem;
+  margin: 0 0.75rem;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.f-info-socials i:hover {
+  color: var(--primary);
+}
+
+.f-info-links a {
+  text-decoration: none;
+  color: var(--dark);
+  margin: 0 0.75rem;
+  font-size: 0.9rem;
+}
+
+.f-info-links a:hover {
+  text-decoration: underline;
+}
+
+/* =========================================
+   7. RESPONSIVE UTILITIES
+   ========================================= */
+@media (max-width: 768px) {
+  #filters {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 1rem;
+    -webkit-overflow-scrolling: touch;
+    /* Smooth scroll */
+    scrollbar-width: none;
+    gap: 2rem;
+    justify-content: flex-start;
+  }
+
+  #filters::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tax-toggle {
+    display: none;
+    /* Hide tax toggle on mobile to save space, or move it */
+  }
+
+  .navbar {
+    height: auto;
+    padding-top: 0.8rem;
+    padding-bottom: 0.8rem;
+  }
+
+  .search-btn {
+    margin-left: 0;
+  }
+}
+
+/* =========================================
+   8. SKELETON LOADING
+   ========================================= */
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.skeleton-card {
+  height: 100%;
+  margin-bottom: 2rem;
+}
+
+.skeleton-img {
+  width: 100%;
+  aspect-ratio: 20/19;
+  border-radius: var(--border-radius-lg);
+  margin-bottom: 0.5rem;
+}
+
+.skeleton-text {
+  height: 1rem;
+  border-radius: 4px;
+  margin-top: 0.5rem;
+  width: 60%;
+}
+
+.skeleton-text.short {
+  width: 30%;
+}
+
+/* =========================================
+   9. AIRBNB SEARCH BAR
+   ========================================= */
+.cursor-pointer {
+  cursor: pointer;
+}
+
+/* Navbar Mini Pill */
+/* =========================================
+   11. FLEXIBLE & MONTHS TABS
+   ========================================= */
+
+/* Flexible Tab */
+.flex-duration-btn {
+  border: 1px solid #dee2e6;
+  color: #222;
+  transition: all 0.2s;
+}
+
+.flex-duration-btn:hover {
+  border-color: #222;
+}
+
+.flex-duration-btn.active {
+  border-color: #222;
+  border-width: 2px;
+  background-color: #f7f7f7;
+}
+
+.flex-month-card {
+  min-width: 120px;
+  height: 120px;
+  border: 1px solid #dee2e6;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.flex-month-card:hover {
+  border-color: #222;
+}
+
+.flex-month-card.active {
+  border-color: #222;
+  border-width: 2px;
+  background-color: #f7f7f7;
+}
+
+.flex-month-icon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  color: #717171;
+}
+
+/* Months Tab (Circular Dial) */
+.dial-container {
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  background: conic-gradient(from 180deg, #f0f0f0 0%, #f0f0f0 100%);
+  position: relative;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.05);
+}
+
+.dial-center {
+  width: 200px;
+  height: 200px;
+  background: white;
+  border-radius: 50%;
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 2;
+}
+
+/* The colorful arc */
+.dial-active-arc {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, #ff385c 0deg, #d90b3e 0deg, transparent 0deg);
+  z-index: 1;
+  transform: rotate(-90deg);
+  /* Start from top */
+  transition: background 0.1s;
+}
+
+.dial-handle {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  border-radius: 50%;
+  z-index: 3;
+  top: 50%;
+  left: 50%;
+  /* Calculated in JS */
+  cursor: grab;
+}
+
+.dial-handle:active {
+  cursor: grabbing;
+  transform: scale(1.1);
+}
+
+.search-bar-pill:hover {
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18) !important;
+  transform: translateY(-2px);
+}
+
+.search-bar-pill-mobile {
+  transition: box-shadow 0.2s;
+}
+
+.search-bar-pill-mobile:hover {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Modal Big Search Bar */
+/* Modal Big Search Bar (Airbnb Spec) */
+.search-big-pill {
+  background-color: #FFFFFF !important;
+  border: 1px solid #DDDDDD;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+  border-radius: 999px !important;
+}
+
+.search-input-container {
+  transition: background-color 0.2s cubic-bezier(0.2, 0, 0, 1);
+  border-radius: 999px !important;
+  position: relative;
+  border: 1px solid transparent;
+}
+
+/* Hover Effect: Airbnb Gray */
+.search-input-container {
+  transition: background-color 0.2s cubic-bezier(0.2, 0, 0, 1), border-radius 0.2s cubic-bezier(0.2, 0, 0, 1);
+  will-change: background-color, border-radius;
+}
+
+.search-input-container:not(.search-field-focused):hover {
+  background-color: #F7F7F7 !important;
+  border-radius: 32px !important;
+  box-shadow: none !important;
+  z-index: 10;
+  border-color: transparent;
+  cursor: pointer;
+}
+
+/* Active Expanded State */
+.search-input-container.search-field-focused {
+  background-color: #FFFFFF !important;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2) !important;
+  z-index: 100 !important;
+  border-color: transparent;
+  padding-left: 32px !important;
+  padding-right: 32px !important;
+}
+
+/* Base state for transition */
+.search-section {
+  transition: padding 0.2s cubic-bezier(0.2, 0, 0, 1), opacity 0.2s cubic-bezier(0.2, 0, 0, 1), background-color 0.2s;
+  will-change: padding, opacity;
+}
+
+/* Search Button Spec */
+.search-big-btn {
+  background: #FF385C !important;
+  transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), background-color 0.2s cubic-bezier(0.2, 0, 0, 1);
+  border: none;
+  will-change: transform, background-color;
+}
+
+.search-big-btn:hover {
+  transform: scale(1.05);
+  background-color: #e31c5f !important;
+}
+
+.shadow-md {
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12) !important;
+}
+
+/* Badges */
+.badge-new {
+  font-size: 0.5rem;
+  padding: 3px 5px;
+  border-radius: 4px;
+}
+
+/* Persistent Focus State */
+/* .search-field-focused already defined above combined */
+
+/* Dropdown Utilities */
+.hover-bg-light {
+  transition: background-color 0.2s;
+}
+
+.hover-bg-light:hover {
+  background-color: #F7F7F7 !important;
+}
+
+.hover-scale {
+  transition: transform 0.2s;
+}
+
+.hover-scale:hover {
+  transform: scale(1.02);
+}
+
+/* Calendar Utilities */
+.hover-bg-gray {
+  transition: background-color 0.2s;
+}
+
+.hover-bg-gray:hover {
+  background-color: #f0f0f0 !important;
+}
+
+.btn-white {
+  background-color: white;
+  border: 1px solid #ddd;
+}
+
+/* Search Popups Animation */
+.search-popup {
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(0) scale(0.98);
+  transition: opacity 0.2s cubic-bezier(0, 0, 0.2, 1), transform 0.2s cubic-bezier(0, 0, 0.2, 1);
+  display: block !important;
+  /* Force layout */
+  pointer-events: none;
+}
+
+.search-popup.active {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(16px) scale(1);
+  pointer-events: auto;
+}
+
+/* Specific Date Popup Centering Fix */
+.search-date-popup {
+  width: 750px !important;
+  max-width: 85vw !important;
+  left: 50% !important;
+  transform: translateX(-50%) translateY(0) scale(0.98) !important;
+}
+
+.search-date-popup.active {
+  transform: translateX(-50%) translateY(16px) scale(1) !important;
+}
+
+/* Modal Positioning Force (Stick to Top with Margin) */
+#searchModal .modal-dialog {
+  margin: auto;
+  /* Removed min-height centering logic to respect mt-5 */
+}
+
+/* Calendar Day Styles */
+.hover-bg-black:hover {
+  background-color: #000000 !important;
+  color: #FFFFFF !important;
+}
+
+.calendar-day {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.search-date-popup.active {
+  transform: translateX(-50%) translateY(16px) scale(1) !important;
+}
+
+/* =========================================
+   10. MOBILE SEARCH REFINEMENTS
+   ========================================= */
+@media (max-width: 768px) {
+
+  /* Full Screen Modal */
+  #searchModal .modal-dialog {
+    margin: 0;
+    width: 100%;
+    max-width: 100%;
+    height: 100%;
+    min-height: 100%;
+    align-items: flex-start;
+  }
+
+  #searchModal .modal-content {
+    height: 100%;
+    border-radius: 0 !important;
+    border: none;
+    overflow-y: auto;
+  }
+
+  #searchModal .modal-body {
+    padding: 1.5rem 1rem !important;
+    background-color: #f7f7f7 !important;
+    /* Light gray bg for contrast */
+  }
+
+  /* Stack the Pill */
+  .search-big-pill {
+    flex-direction: column;
+    height: auto !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+    border: none;
+    border-radius: 0 !important;
+    gap: 1rem;
+    padding: 0;
+  }
+
+  /* Sections as Cards */
+  .search-section {
+    width: 100%;
+    background-color: #fff;
+    border-radius: 16px !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+    padding: 1.25rem !important;
+    height: auto !important;
+    border: 1px solid transparent;
+    margin: 0 !important;
+    /* Reset margin */
+  }
+
+  .search-section.search-field-focused {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+    border: 1px solid #000;
+    transform: none !important;
+    z-index: 10;
+  }
+
+  /* Cleanup */
+  .vertical-divider {
+    display: none !important;
+  }
+
+  #search-active-indicator {
+    display: none !important;
+  }
+
+  /* Adjust Search Button */
+  .search-big-btn {
+    width: 100% !important;
+    border-radius: 12px !important;
+    margin-top: 1rem;
+    font-size: 1.1rem;
+    padding: 0.8rem;
+  }
+
+  /* Fix Who Section Layout */
+  #whoSection {
+    flex-direction: column;
+    align-items: flex-start !important;
+  }
+
+  #whoSection .search-big-btn {
+    /* Don't show inside section? Move via JS? 
+          Or make it full width at bottom of Who Section. */
+    width: 100%;
+  }
+
+  /* Popups Mobile - Stack Inline */
+  .search-popup {
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    left: 0 !important;
+    top: 0 !important;
+    margin-top: 1rem !important;
+    box-shadow: none !important;
+    border: 1px solid #eee !important;
+    border-radius: 12px !important;
+    transform: none !important;
+  }
+
+  .search-popup:not(.active) {
+    display: none !important;
+  }
+
+  .search-popup.active {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: none !important;
+  }
+
+  /* Calendar Adjustments */
+  .search-date-popup {
+    padding: 1rem !important;
+  }
+
+  /* Suggestion Grid cols */
+  .row-cols-3>* {
+    width: 50% !important;
+    /* 2 cols on mobile */
+  }
+}
+
+/* Similar Listings Hover */
+.card-hover-effect:hover .transition-scale {
+  transform: scale(1.05);
+}
+
+.transition-scale {
+  transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Section Transition Animation */
+.animate-section {
+  animation: slideFadeAs 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transform-origin: top center;
+}
+
+@keyframes slideFadeAs {
+  0% {
+    opacity: 0;
+    transform: translateY(12px) scale(0.96);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* =========================================
+   12. BOOKING GUEST POPUP
+   ========================================= */
+.booking-guest-popup {
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+#bookingGuestSection:hover {
+  background-color: #f7f7f7;
+  transition: background-color 0.2s ease;
+}
+
+#bookingGuestSection {
+  transition: background-color 0.2s ease;
+}
+
+/* =========================================
+   13. ENHANCED SEARCH SUGGESTIONS
+   ========================================= */
+.suggestion-item {
+  transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+  border-radius: 12px;
+  margin: 0 8px;
+  cursor: pointer;
+  position: relative;
+}
+
+.suggestion-item:hover {
+  background-color: #f7f7f7 !important;
+  transform: translateX(4px);
+}
+
+.suggestion-item:active {
+  transform: scale(0.98);
+}
+
+/* Keyboard focus state */
+.suggestion-item:focus {
+  outline: 2px solid #FF385C;
+  outline-offset: -2px;
+  background-color: #fff5f7;
+}
+
+/* Result count badge */
+#searchResultCount {
+  background-color: #f0f0f0;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 600;
+  color: #717171;
+}
+
+/* No results message */
+#noResults {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .search-suggestions {
+    width: calc(100vw - 32px) !important;
+    left: 50% !important;
+    transform: translateX(-50%);
+    max-height: 60vh !important;
+  }
+
+  .suggestion-item {
+    padding: 16px !important;
+    min-height: 72px;
+  }
+
+  .suggestion-item .fw-bold {
+    font-size: 1rem;
+  }
+
+  .suggestion-item .small {
+    font-size: 0.85rem;
+  }
+}
+
+/* Smooth scrolling for suggestions */
+.search-suggestions {
+  scroll-behavior: smooth;
+}
+
+/* =========================================
+   14. FLEXIBLE DATES TAB STYLING
+   ========================================= */
+
+/* Duration buttons (Weekend, Week, Month) */
+.flex-duration-btn {
+  background-color: #fff;
+  border: 1px solid #ddd !important;
+  color: #222;
+  transition: all 0.2s ease;
+}
+
+.flex-duration-btn:hover {
+  background-color: #f7f7f7;
+  border-color: #222 !important;
+}
+
+.flex-duration-btn.active {
+  background-color: #222 !important;
+  color: #fff !important;
+  border-color: #222 !important;
+}
+
+/* Month cards */
+.flex-month-card {
+  min-width: 120px;
+  height: 120px;
+  border: 1px solid #ddd;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background-color: #fff;
+  flex-shrink: 0;
+}
+
+.flex-month-card:hover {
+  border-color: #222;
+  background-color: #f7f7f7;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.flex-month-card.active {
+  background-color: #222;
+  color: #fff;
+  border-color: #222;
+}
+
+.flex-month-card.active .text-muted {
+  color: #ccc !important;
+}
+
+.flex-month-card.active .flex-month-icon {
+  color: #fff;
+}
+
+.flex-month-icon {
+  font-size: 2rem;
+  margin-bottom: 8px;
+  color: #717171;
+  transition: color 0.2s ease;
+}
+
+/* Flexibility buttons (± days) */
+.flex-btn {
+  transition: all 0.2s ease;
+}
+
+.flex-btn.active {
+  background-color: #222 !important;
+  color: #fff !important;
+  border-color: #222 !important;
+}
+
+.flex-btn:not(.active):hover {
+  border-color: #222 !important;
+  background-color: #f7f7f7;
+}
+
+/* Dial UI for Months tab */
+.dial-container {
+  position: relative;
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.dial-center {
+  text-align: center;
+  z-index: 5;
+  position: relative;
+}
+
+.dial-active-arc {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg,
+      #FF385C 0deg,
+      #FF385C var(--arc-deg, 150deg),
+      transparent var(--arc-deg, 150deg));
+  opacity: 0.3;
+  transition: all 0.3s ease;
+}
+
+/* Scrollbar hiding for month cards */
+#flexible-months-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+#flexible-months-scroll {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* =========================================
+   15. LOADING SKELETONS
+   ========================================= */
+
+/* Skeleton base */
+.skeleton {
+  background: linear-gradient(90deg,
+      #f0f0f0 0%,
+      #e0e0e0 20%,
+      #f0f0f0 40%,
+      #f0f0f0 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: 8px;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Skeleton variants */
+.skeleton-text {
+  height: 16px;
+  margin-bottom: 8px;
+  border-radius: 4px;
+}
+
+.skeleton-title {
+  height: 24px;
+  width: 60%;
+  margin-bottom: 12px;
+  border-radius: 4px;
+}
+
+.skeleton-image {
+  width: 100%;
+  height: 100%;
+  border-radius: var(--border-radius-lg);
+}
+
+.skeleton-card {
+  width: 100%;
+  height: 100%;
+  border-radius: var(--border-radius-lg);
+}
+
+.skeleton-circle {
+  border-radius: 50%;
+}
+
+/* Listing card skeleton */
+.listing-skeleton {
+  margin-bottom: 2rem;
+}
+
+.listing-skeleton .skeleton-image {
+  aspect-ratio: 1 / 1;
+  margin-bottom: 12px;
+}
+
+.listing-skeleton .skeleton-text:last-child {
+  width: 40%;
+}
+
+/* Hide content while loading */
+.loading .listing-card {
+  display: none;
+}
+
+/* Fade in animation when content loads */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.listing-card {
+  animation: fadeIn 0.4s ease-out;
+}
+
+/* Skeleton for search results */
+.search-skeleton {
+  padding: 1rem;
+}
+
+.search-skeleton .skeleton-image {
+  height: 200px;
+  margin-bottom: 1rem;
+}
+
+/* =========================================
+   16. LAZY LOADING IMAGES
+   ========================================= */
+
+/* Images before loading */
+img[data-src] {
+  opacity: 0;
+  transition: opacity 0.3s ease-in;
+  background-color: #f0f0f0;
+}
+
+/* Images after loading */
+img.lazy-loaded {
+  opacity: 1;
+}
+
+/* Blur-up effect (optional) */
+img[data-src].blur-up {
+  filter: blur(5px);
+}
+
+img.lazy-loaded.blur-up {
+  filter: blur(0);
+  transition: opacity 0.3s ease-in, filter 0.3s ease-in;
+}
+
+/* =========================================
+   17. TOAST NOTIFICATIONS
+   ========================================= */
+
+/* Toast container */
+.toast-container {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+/* Individual toast */
+.toast-notification {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  padding: 16px 20px;
+  margin-bottom: 12px;
+  min-width: 300px;
+  max-width: 400px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  pointer-events: auto;
+  animation: slideInRight 0.3s ease-out;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Toast variants */
+.toast-success {
+  border-left: 4px solid #10b981;
+}
+
+.toast-error {
+  border-left: 4px solid #ef4444;
+}
+
+.toast-warning {
+  border-left: 4px solid #f59e0b;
+}
+
+.toast-info {
+  border-left: 4px solid #3b82f6;
+}
+
+/* Toast icon */
+.toast-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 14px;
+}
+
+.toast-success .toast-icon {
+  background-color: #d1fae5;
+  color: #10b981;
+}
+
+/* Button Styles */
+.btn-search {
+  background-color: #fe424d;
+  color: #fff;
+  border-radius: 25px;
+  padding: 0 1rem 0 1rem;
+  transition: transform 0.2s;
+}
+
+.btn-search:hover {
+  background-color: #fe424d;
+  color: #fff;
+  transform: scale(1.05);
+  /* Pop effect */
+}
+
+.btn-search i {
+  display: inline;
+  margin-right: 0.5rem;
+}
+
+/* Premium Primary Button */
+.btn-primary {
+  background: linear-gradient(90deg, #ff385c 0%, #bd1e59 100%);
+  border: none;
+  color: white;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 14px rgba(255, 56, 92, 0.4);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 56, 92, 0.6);
+  background: linear-gradient(90deg, #e61e4d 0%, #a31649 100%);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+/* Secondary/Outline Button */
+.btn-outline-dark {
+  border-width: 1px;
+  transition: all 0.2s ease;
+}
+
+.btn-outline-dark:hover {
+  background-color: #f7f7f7;
+  color: black;
+  border-color: black;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Form Switch Brand Color */
+.form-check-input:checked {
+  background-color: var(--primary);
+  border-color: var(--primary);
+}
+
+.form-check-input:focus {
+  border-color: var(--primary-hover);
+  box-shadow: 0 0 0 0.25rem rgba(255, 56, 92, 0.25);
+}
+
+/* Danger Button Polish */
+.btn-danger {
+  background: linear-gradient(90deg, #ff385c 0%, #e61e4d 100%);
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.btn-danger:hover {
+  background: linear-gradient(90deg, #d50027 0%, #bd1e59 100%);
+  box-shadow: 0 4px 12px rgba(213, 0, 39, 0.3);
+  transform: translateY(-1px);
+}
+
+.toast-error .toast-icon {
+  background-color: #fee2e2;
+  color: #ef4444;
+}
+
+.toast-warning .toast-icon {
+  background-color: #fef3c7;
+  color: #f59e0b;
+}
+
+.toast-info .toast-icon {
+  background-color: #dbeafe;
+  color: #3b82f6;
+}
+
+/* Toast content */
+.toast-content {
+  flex: 1;
+}
+
+.toast-title {
+  font-weight: 600;
+  font-size: 14px;
+  color: #1f2937;
+  margin-bottom: 2px;
+}
+
+.toast-message {
+  font-size: 13px;
+  color: #6b7280;
+  line-height: 1.4;
+}
+
+/* Toast close button */
+.toast-close {
+  background: none;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.toast-close:hover {
+  background-color: #f3f4f6;
+  color: #4b5563;
+}
+
+/* Progress bar */
+.toast-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background-color: currentColor;
+  opacity: 0.3;
+  animation: shrink 3s linear forwards;
+}
+
+.toast-success .toast-progress {
+  color: #10b981;
+}
+
+.toast-error .toast-progress {
+  color: #ef4444;
+}
+
+.toast-warning .toast-progress {
+  color: #f59e0b;
+}
+
+.toast-info .toast-progress {
+  color: #3b82f6;
+}
+
+/* Animations */
+@keyframes slideInRight {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+
+  to {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+}
+
+@keyframes shrink {
+  from {
+    width: 100%;
+  }
+
+  to {
+    width: 0%;
+  }
+}
+
+/* Removing animation */
+.toast-notification.removing {
+  animation: slideOutRight 0.3s ease-out forwards;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .toast-container {
+    top: 70px;
+    right: 10px;
+    left: 10px;
+  }
+
+  .toast-notification {
+    min-width: auto;
+    max-width: none;
+  }
+}
+
+/* =========================================
+   18. MOBILE STICKY BOOKING BUTTON
+   ========================================= */
+
+/* Sticky booking bar for mobile */
+.mobile-booking-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  border-top: 1px solid #e5e7eb;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+  padding: 12px 16px;
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+  z-index: 1050;
+  transform: translateY(100%);
+  transition: transform 0.3s ease-out;
+  display: none;
+}
+
+/* Show on mobile only */
+@media (max-width: 768px) {
+  .mobile-booking-bar {
+    display: flex;
+  }
+
+  .mobile-booking-bar.visible {
+    transform: translateY(0);
+  }
+}
+
+/* Booking bar content */
+.mobile-booking-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 12px;
+}
+
+/* Price section */
+.mobile-booking-price {
+  flex: 1;
+}
+
+.mobile-booking-price-amount {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1f2937;
+  line-height: 1.2;
+}
+
+.mobile-booking-price-label {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.mobile-booking-rating {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 2px;
+}
+
+.mobile-booking-rating i {
+  color: #fbbf24;
+  font-size: 11px;
+}
+
+/* Book button */
+.mobile-booking-btn {
+  background: linear-gradient(135deg, #e61e4d 0%, #d70466 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-weight: 600;
+  font-size: 15px;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(230, 30, 77, 0.3);
+  transition: all 0.2s ease;
+}
+
+.mobile-booking-btn:hover,
+.mobile-booking-btn:active {
+  background: linear-gradient(135deg, #d70466 0%, #c4005c 100%);
+  transform: scale(0.98);
+  box-shadow: 0 4px 12px rgba(230, 30, 77, 0.4);
+}
+
+/* Add padding to body when sticky bar is visible */
+body.has-mobile-booking {
+  padding-bottom: 80px;
+}
+
+/* Hide desktop booking card on mobile when sticky is active */
+@media (max-width: 768px) {
+  .mobile-booking-bar.visible~.container .booking-card-desktop {
+    display: none;
+  }
+}
+
+/* Smooth scroll behavior */
+html {
+  scroll-behavior: smooth;
+}
+
+/* =========================================
+   19. REVIEW RATING BREAKDOWN
+   ========================================= */
+
+/* Rating overview section */
+.rating-overview {
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 32px;
+  border: 1px solid #e5e7eb;
+}
+
+.rating-overview-header {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.rating-score {
+  text-align: center;
+}
+
+.rating-score-number {
+  font-size: 48px;
+  font-weight: 700;
+  line-height: 1;
+  color: #1f2937;
+}
+
+.rating-score-stars {
+  color: #fbbf24;
+  font-size: 14px;
+  margin-top: 8px;
+}
+
+.rating-score-label {
+  font-size: 13px;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+/* Rating bars */
+.rating-breakdown {
+  flex: 1;
+}
+
+.rating-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.rating-bar-row:last-child {
+  margin-bottom: 0;
+}
+
+.rating-bar-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #4b5563;
+  min-width: 60px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.rating-bar-label i {
+  color: #fbbf24;
+  font-size: 11px;
+}
+
+.rating-bar-container {
+  flex: 1;
+  height: 8px;
+  background-color: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.rating-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #fbbf24 0%, #f59e0b 100%);
+  border-radius: 4px;
+  transition: width 0.6s ease-out;
+  position: relative;
+}
+
+.rating-bar-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.3) 50%, transparent 100%);
+  animation: shimmerBar 2s infinite;
+}
+
+@keyframes shimmerBar {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.rating-bar-percentage {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  min-width: 40px;
+  text-align: right;
+}
+
+/* Category ratings */
+.rating-categories {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.rating-category {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.rating-category-name {
+  font-size: 13px;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rating-category-name i {
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+.rating-category-score {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .rating-overview-header {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .rating-score {
+    width: 100%;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .rating-categories {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Animation on load */
+.rating-bar-fill {
+  width: 0;
+}
+
+.rating-bar-fill.animated {
+  animation: fillBar 0.6s ease-out forwards;
+}
+
+@keyframes fillBar {
+  from {
+    width: 0;
+  }
+
+  to {
+    width: var(--bar-width);
+  }
+}

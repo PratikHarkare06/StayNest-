@@ -1,0 +1,59 @@
+<% layout("/layouts/boilerplate") %>
+
+    <div class="container py-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold">All Listings (<%= listings.length %>)</h2>
+            <a href="/admin" class="btn btn-outline-dark rounded-pill">Back to Dashboard</a>
+        </div>
+
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="ps-4">Title</th>
+                                <th>Owner</th>
+                                <th>Price</th>
+                                <th>Location</th>
+                                <th class="text-end pe-4">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% for(let listing of listings) { %>
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="d-flex align-items-center">
+                                            <img src="<%= listing.image.url %>" class="rounded-3 me-3"
+                                                style="width:50px;height:40px;object-fit:cover;">
+                                            <span class="fw-semibold">
+                                                <%= listing.title %>
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <%= listing.owner ? listing.owner.username : 'Unknown' %>
+                                    </td>
+                                    <td>&#8377;<%= listing.price.toLocaleString("en-IN") %>
+                                    </td>
+                                    <td>
+                                        <%= listing.location %>, <%= listing.country %>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <a href="/listings/<%= listing._id %>"
+                                            class="btn btn-sm btn-light text-primary rounded-circle me-1"
+                                            target="_blank"><i class="fa-solid fa-eye"></i></a>
+                                        <form method="POST" action="/admin/listings/<%= listing._id %>?_method=DELETE"
+                                            class="d-inline" onsubmit="return confirm('Are you sure?');">
+                                            <button class="btn btn-sm btn-light text-danger rounded-circle"><i
+                                                    class="fa-solid fa-trash"></i></button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                <% } %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>

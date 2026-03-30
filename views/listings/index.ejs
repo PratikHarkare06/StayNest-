@@ -1,0 +1,432 @@
+<% layout("/layouts/boilerplate") %>
+
+  <div id="filters-main-container" class="d-flex align-items-center sticky-top bg-white z-3 py-2">
+    <!-- Scrollable Categories -->
+    <div id="filters" class="d-flex align-items-center overflow-x-auto flex-grow-1 pe-3" style="scrollbar-width: none;">
+      <a href="/listings?category=Trending" class="filter">
+        <div><i class="fa-solid fa-fire"></i></div>
+        <p>Trending</p>
+      </a>
+      <a href="/listings?category=Rooms" class="filter">
+        <div><i class="fa-solid fa-bed"></i></div>
+        <p>Rooms</p>
+      </a>
+      <a href="/listings?category=Iconic Cities" class="filter">
+        <div><i class="fa-solid fa-mountain-city"></i></div>
+        <p>Iconic Cities</p>
+      </a>
+      <a href="/listings?category=Mountains" class="filter">
+        <div><i class="fa-solid fa-mountain"></i></div>
+        <p>Mountains</p>
+      </a>
+      <a href="/listings?category=Castles" class="filter">
+        <div><i class="fa-brands fa-fort-awesome"></i></div>
+        <p>Castles</p>
+      </a>
+      <a href="/listings?category=Amazing Pools" class="filter">
+        <div><i class="fa-solid fa-person-swimming"></i></div>
+        <p>Amazing Pools</p>
+      </a>
+      <a href="/listings?category=Camping" class="filter">
+        <div><i class="fa-solid fa-campground"></i></div>
+        <p>Camping</p>
+      </a>
+      <a href="/listings?category=Farms" class="filter">
+        <div><i class="fa-solid fa-cow"></i></div>
+        <p>Farms</p>
+      </a>
+      <a href="/listings?category=Arctic" class="filter">
+        <div><i class="fa-regular fa-snowflake"></i></div>
+        <p>Arctic</p>
+      </a>
+      <a href="/listings?category=Domes" class="filter">
+        <div><i class="fa-solid fa-igloo"></i></div>
+        <p>Domes</p>
+      </a>
+      <a href="/listings?category=Boats" class="filter">
+        <div><i class="fa-solid fa-ship"></i></div>
+        <p>Boats</p>
+      </a>
+    </div>
+
+    <!-- Fixed Action Buttons -->
+    <!-- Fixed Action Buttons -->
+    <div class="d-none d-md-flex align-items-center ms-auto gap-2">
+      <div class="tax-toggle">
+        <div
+          class="form-check form-switch form-check-reverse p-0 m-0 d-flex align-items-center justify-content-between w-100">
+          <label class="form-check-label fs-6 fw-semibold me-2 cursor-pointer" for="flexSwitchCheckDefault">Display
+            total after taxes</label>
+          <input class="form-check-input m-0 cursor-pointer" type="checkbox" role="switch" id="flexSwitchCheckDefault"
+            style="height: 1.5rem; width: 2.5rem;">
+        </div>
+      </div>
+
+      <div class="tax-toggle">
+        <div
+          class="form-check form-switch form-check-reverse p-0 m-0 d-flex align-items-center justify-content-between w-100">
+          <label class="form-check-label fs-6 fw-semibold me-2 cursor-pointer"
+            for="flexSwitchCheckDefaultMap">Map</label>
+          <input class="form-check-input m-0 cursor-pointer" type="checkbox" role="switch"
+            id="flexSwitchCheckDefaultMap" autocomplete="off" style="height: 1.5rem; width: 2.5rem;">
+        </div>
+      </div>
+    </div>
+
+    <button class="btn btn-outline-dark ms-2 d-flex align-items-center rounded-circle p-2 d-md-none" type="button"
+      data-bs-toggle="modal" data-bs-target="#filtersModal" style="width: 40px; height: 40px;">
+      <i class="fa-solid fa-sliders mx-auto"></i>
+    </button>
+
+    <button class="btn btn-outline-dark ms-2 d-none d-md-flex align-items-center rounded-pill py-2 px-3 fw-bold"
+      type="button" data-bs-toggle="modal" data-bs-target="#filtersModal"
+      style="border: 1px solid #ddd; font-size: 0.9rem;">
+      <i class="fa-solid fa-sliders me-2"></i> Filters
+    </button>
+  </div>
+
+  <div class="container-fluid px-md-4">
+    <div id="main-content-row" class="row">
+      <!-- List Side -->
+      <div id="listings-side" class="col-12 transition-all">
+        <div id="listings-container" class="row row-cols-xl-4 row-cols-lg-3 row-cols-md-2 row-cols-sm-1 mt-3">
+    <% if(allListings && allListings.length> 0) { %>
+      <% for (let listing of allListings) { %>
+        <div class="col mb-4">
+          <div class="card h-100 listing-card position-relative">
+            <img src="/images/placeholder.jpg"
+              data-src="<%- listing.image && listing.image.url ? listing.image.url : '/images/placeholder.jpg' %>"
+              class="card-img-top lazy-load" alt="<%= listing.title %>" style="height: 20rem; object-fit: cover" />
+
+            <div class="card-img-overlay p-0">
+              <% if(currUser) { %>
+                <form action="/users/wishlist/<%= listing._id %>" method="POST"
+                  class="position-absolute end-0 top-0 m-3 wishlist-form" style="z-index: 10;">
+                  <button
+                    class="btn btn-sm rounded-circle d-flex align-items-center justify-content-center border-0 shadow-sm"
+                    style="background-color: white; width: 35px; height: 35px; cursor: pointer;">
+                    <i
+                      class="<%= currUser.wishlist.some(id => id.equals(listing._id)) ? 'fa-solid text-danger' : 'fa-regular' %> fa-heart"></i>
+                  </button>
+                </form>
+                <% } %>
+            </div>
+
+            <div class="card-body">
+              <a href="/listings/<%= listing._id %>" class="text-decoration-none text-dark stretched-link">
+                <p class="card-text">
+                  <b>
+                    <%= listing.title %>
+                  </b> <br />
+                  <span class="listing-price" data-base-price="<%= listing.price %>">
+                    &#8377; <%= listing.price.toLocaleString("en-IN") %>
+                  </span>
+                  <span class="text-muted">/ night</span>
+                  <i class="tax-info text-muted ms-1" style="display: none; font-size: 0.85em;">&nbsp;+18% GST</i>
+                </p>
+              </a>
+            </div>
+          </div>
+        </div>
+        <% } %>
+          <% } else { %>
+            <!-- EMPTY STATE -->
+            <div class="col-12 text-center py-5 mt-5">
+              <div class="mb-4">
+                <i class="fa-solid fa-earth-americas fa-4x text-muted opacity-25 mb-3"></i>
+                <i class="fa-solid fa-magnifying-glass fa-2x text-muted position-absolute"
+                  style="margin-left: -20px; margin-top: 20px;"></i>
+              </div>
+              <h4 class="fw-bold text-dark">No exact matches</h4>
+              <p class="text-muted">Try changing or removing some of your filters.</p>
+              <a href="/listings" class="btn btn-outline-dark rounded-pill border-dark px-4 py-2 mt-2 fw-bold">Remove
+                all filters</a>
+            </div>
+            <% } %>
+        </div>
+      </div>
+
+      <!-- Map Side (Split View) -->
+      <div id="map-side" class="col-lg-5 col-md-6 d-none sticky-top" style="height: calc(100vh - 120px); top: 110px; z-index: 10;">
+          <button id="fullMapToggle" class="btn btn-white shadow-sm border rounded-circle position-absolute top-0 end-0 m-3 d-flex align-items-center justify-content-center" 
+                  style="width: 42px; height: 42px; background: white; z-index: 2000; pointer-events: all;" title="Toggle Full Screen Map">
+              <i class="fa-solid fa-expand"></i>
+          </button>
+          <div id="cluster-map" class="w-100 h-100 rounded-4 shadow-sm border overflow-hidden"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter Modal (Moved outside layout) -->
+  <div class="modal fade" id="filtersModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content rounded-4 shadow">
+        <div class="modal-header border-bottom-0 pb-0">
+          <h1 class="modal-title fs-5 fw-bold">Filters</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4">
+          <form action="/listings" method="GET">
+            <% if(typeof category !=='undefined' && category) { %><input type="hidden" name="category" value="<%= category %>"> <% } %>
+            <% if(typeof q !=='undefined' && q) { %><input type="hidden" name="q" value="<%= q %>"> <% } %>
+
+            <!-- Price Range Filter -->
+            <div class="mb-4">
+              <h5 class="fw-bold mb-3">Price Range</h5>
+              <div class="d-flex align-items-center gap-3">
+                <div class="form-floating flex-grow-1">
+                  <input type="number" class="form-control rounded-4" id="minPrice" name="minPrice" placeholder="Min" min="0" value="<%= typeof minPrice !== 'undefined' ? minPrice : '' %>">
+                  <label for="minPrice">Min price</label>
+                </div>
+                <div class="text-muted">-</div>
+                <div class="form-floating flex-grow-1">
+                  <input type="number" class="form-control rounded-4" id="maxPrice" name="maxPrice" placeholder="Max" min="0" value="<%= typeof maxPrice !== 'undefined' ? maxPrice : '' %>">
+                  <label for="maxPrice">Max price</label>
+                </div>
+              </div>
+            </div>
+
+            <h6 class="fw-bold mb-3">Sort By</h6>
+            <div class="d-flex gap-2 mb-4">
+              <input type="radio" class="btn-check" name="sort" id="sortNew" value="newest" checked>
+              <label class="btn btn-outline-dark rounded-pill flex-grow-1" for="sortNew">Newest</label>
+
+              <input type="radio" class="btn-check" name="sort" id="sortLow" value="price_low">
+              <label class="btn btn-outline-dark rounded-pill flex-grow-1" for="sortLow">Price: Low</label>
+
+              <input type="radio" class="btn-check" name="sort" id="sortHigh" value="price_high">
+              <label class="btn btn-outline-dark rounded-pill flex-grow-1" for="sortHigh">Price: High</label>
+            </div>
+
+            <div class="d-grid pt-2 border-top">
+              <button class="btn btn-dark rounded-pill py-3 fw-bold mt-3">Show results</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Spinner -->
+  <!-- Skeleton Loading (Hidden by default) -->
+  <div id="loading-spinner" class="row row-cols-lg-3 row-cols-md-2 row-cols-sm-1 mt-3 d-none">
+    <% for(let i=0; i<6; i++) { %>
+      <div class="col mb-4">
+        <div class="skeleton-card">
+          <div class="skeleton skeleton-img"></div>
+          <div class="skeleton skeleton-text"></div>
+          <div class="skeleton skeleton-text short"></div>
+          <div class="skeleton skeleton-text" style="width: 40%;"></div>
+        </div>
+      </div>
+      <% } %>
+  </div>
+
+  <% if (typeof totalPages !=='undefined' && totalPages> 1) { %>
+    <nav aria-label="Page navigation" class="mt-4 mb-5 d-none d-md-block">
+      <!-- Hidden on mobile, or just hide entirely if scroll is preferred -->
+      <ul class="pagination justify-content-center">
+
+        <li class="page-item <%= currentPage === 1 ? 'disabled' : '' %>">
+          <a class="page-link" href="/listings<%= queryString %>&page=<%= currentPage - 1 %>" aria-label="Previous">
+            <span aria-hidden="true">&laquo;</span>
+          </a>
+        </li>
+
+        <% let startPage=Math.max(1, currentPage - 2); let endPage=Math.min(totalPages, currentPage + 2); if (startPage>
+          1) { %>
+          <li class="page-item"><a class="page-link" href="/listings<%= queryString %>&page=1">1</a></li>
+          <% if (startPage> 2) { %> <li class="page-item disabled"><span class="page-link">...</span></li>
+            <% } %>
+              <% } for(let i=startPage; i <=endPage; i++) { %>
+                <li class="page-item <%= currentPage === i ? 'active' : '' %>">
+                  <a class="page-link" href="/listings<%= queryString %>&page=<%= i %>">
+                    <%= i %>
+                  </a>
+                </li>
+                <% } if (endPage < totalPages) { %>
+                  <% if (endPage < totalPages - 1) { %>
+                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                    <% } %>
+                      <li class="page-item"><a class="page-link"
+                          href="/listings<%= queryString %>&page=<%= totalPages %>">
+                          <%= totalPages %>
+                        </a></li>
+                      <% } %>
+
+                        <li class="page-item <%= currentPage === totalPages ? 'disabled' : '' %>">
+                          <a class="page-link" href="/listings<%= queryString %>&page=<%= currentPage + 1 %>"
+                            aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                          </a>
+                        </li>
+      </ul>
+    </nav>
+    <% } %>
+
+      <!-- Mobile Floating Map Button -->
+      <button id="floatingMapBtn" class="floating-map-btn" onclick="toggleMap()">
+        <i class="fa-solid fa-map"></i>&nbsp;Map
+      </button>
+
+      <% if (typeof totalPages !=='undefined' && totalPages> 1) { %>
+        <!-- Pagination ... (Keep existing pagination if possible or just include it if I'm replacing the whole block) -->
+        <!-- ... skipped for brevity in replace content, I should be careful not to delete pagination -->
+        <!-- Wait, I am replacing from line 223 which is AFTER pagination. -->
+
+        <!-- Actually, line 223 is inside the 'if totalPages > 1' block? No, line 221 is closing brace. -->
+        <!-- Line 223 is <script> const mapToken ... -->
+        <!-- So I will replace the Scripts area only. -->
+        <% } %>
+
+          <!-- Store data in JSON script tags (safer than inline) -->
+          <script id="allListingsMapData" type="application/json">
+            <%- JSON.stringify(allListingsMap) %>
+          </script>
+
+          <script>
+            /* Infinite Scroll & Map Config */
+            const mapToken = "<%= mapToken %>";
+            const allListingsMapElement = document.getElementById('allListingsMapData');
+            const allListingsMap = allListingsMapElement ? JSON.parse(allListingsMapElement.textContent) : [];
+            const totalPagesServer = <%= typeof totalPages !== 'undefined' ? totalPages : 0 %>;
+          </script>
+          <script src="/js/infiniteScroll.js"></script>
+          <script>
+            setTotalPages(totalPagesServer);
+          </script>
+          <script src="/js/clusterMap.js"></script>
+          <script>
+            const mapToggle = document.getElementById("flexSwitchCheckDefaultMap");
+            const clusterMap = document.getElementById("cluster-map");
+            const floatingMapBtn = document.getElementById("floatingMapBtn");
+
+            const mainListingsGrid = document.querySelector(".row-cols-lg-3"); // The primary photo grid
+            const paginationNav = document.querySelector("nav[aria-label='Page navigation']");
+            const loadingHtml = document.getElementById("loading-spinner");
+
+            const listingsSide = document.getElementById("listings-side");
+            const mapSide = document.getElementById("map-side");
+            const fullMapToggle = document.getElementById("fullMapToggle");
+
+            function toggleMap() {
+              if (mapToggle && clusterMap && listingsSide) {
+                if (mapToggle.checked) {
+                   // Split View: 7/5 Layout
+                   listingsSide.classList.remove("col-12", "d-none");
+                   listingsSide.classList.add("col-lg-7", "col-md-6");
+                   
+                   // Re-adjust grid columns for tighter space
+                   mainListingsGrid.classList.remove("row-cols-xl-4", "row-cols-lg-3");
+                   mainListingsGrid.classList.add("row-cols-lg-2", "row-cols-md-1");
+
+                   mapSide.classList.remove("d-none", "col-12");
+                   mapSide.classList.add("col-lg-5", "col-md-6");
+                   fullMapToggle.innerHTML = '<i class="fa-solid fa-expand"></i>';
+
+                   if(loadingHtml) loadingHtml.classList.add('d-none');
+                   
+                   setTimeout(() => {
+                     if (window.map) window.map.invalidateSize();
+                   }, 400);
+                } else {
+                   // Full Grid View
+                   listingsSide.classList.add("col-12");
+                   listingsSide.classList.remove("col-lg-7", "col-md-6", "d-none");
+
+                   mainListingsGrid.classList.add("row-cols-xl-4", "row-cols-lg-3");
+                   mainListingsGrid.classList.remove("row-cols-lg-2", "row-cols-md-1");
+
+                   mapSide.classList.add("d-none");
+                }
+              }
+            }
+
+            if (fullMapToggle) {
+                fullMapToggle.addEventListener("click", () => {
+                    if (mapSide.classList.contains("col-lg-5")) {
+                        // Expand to Full Map
+                        mapSide.classList.remove("col-lg-5", "col-md-6");
+                        mapSide.classList.add("col-12");
+                        listingsSide.classList.add("d-none");
+                        fullMapToggle.innerHTML = '<i class="fa-solid fa-compress"></i>';
+                    } else {
+                        // Return to Split View
+                        mapSide.classList.add("col-lg-5", "col-md-6");
+                        mapSide.classList.remove("col-12");
+                        listingsSide.classList.remove("d-none");
+                        fullMapToggle.innerHTML = '<i class="fa-solid fa-expand"></i>';
+                    }
+                    setTimeout(() => {
+                        if (window.map) window.map.invalidateSize();
+                    }, 300);
+                });
+            }
+
+            if (mapToggle) {
+              mapToggle.addEventListener("change", toggleMap);
+              // Run once on load to sync UI
+              toggleMap();
+            }
+
+            // Handle floating map button (mobile) if it exists
+            if (floatingMapBtn && mapToggle) {
+              floatingMapBtn.addEventListener('click', () => {
+                mapToggle.checked = !mapToggle.checked;
+                toggleMap();
+                // Scroll to map if opening
+                if (mapToggle.checked && clusterMap) {
+                  clusterMap.scrollIntoView({ behavior: 'smooth' });
+                }
+              });
+            }
+
+            let taxSwitch = document.getElementById("flexSwitchCheckDefault");
+            if (taxSwitch) {
+              taxSwitch.addEventListener("click", () => {
+                let taxInfo = document.getElementsByClassName("tax-info");
+                let priceElements = document.getElementsByClassName("listing-price");
+
+                for (let i = 0; i < priceElements.length; i++) {
+                  let basePrice = parseFloat(priceElements[i].getAttribute("data-base-price"));
+
+                  if (taxSwitch.checked) {
+                    // Show total price
+                    let totalPrice = basePrice * 1.18;
+                    priceElements[i].innerHTML = "&#8377; " + totalPrice.toLocaleString("en-IN", { maximumFractionDigits: 0 });
+                    taxInfo[i].style.display = "inline";
+                    taxInfo[i].innerText = " incl. taxes";
+                  } else {
+                    // Show base price
+                    priceElements[i].innerHTML = "&#8377; " + basePrice.toLocaleString("en-IN");
+                    taxInfo[i].style.display = "none";
+                  }
+                }
+              });
+            }
+
+            // ===== SKELETON LOADING LOGIC =====
+            // Show skeleton on page load, hide when content is ready
+            document.addEventListener('DOMContentLoaded', function () {
+              const listingsContainer = document.getElementById('listings-container');
+              const loadingSkeletons = document.getElementById('loading-spinner');
+
+              // If there are listings, show them with fade-in animation
+              if (listingsContainer && listingsContainer.children.length > 0) {
+                // Hide skeletons
+                if (loadingSkeletons) {
+                  loadingSkeletons.classList.add('d-none');
+                }
+
+                // Show listings with staggered fade-in
+                const listingCards = listingsContainer.querySelectorAll('.col');
+                listingCards.forEach((card, index) => {
+                  card.style.opacity = '0';
+                  setTimeout(() => {
+                    card.style.transition = 'opacity 0.4s ease-out';
+                    card.style.opacity = '1';
+                  }, index * 50); // Stagger by 50ms
+                });
+              }
+            });
+          </script>

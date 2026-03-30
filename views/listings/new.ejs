@@ -1,0 +1,136 @@
+<% layout("/layouts/boilerplate") %>
+
+  <div class="container my-5">
+    <div class="row justify-content-center">
+      <div class="col-md-9 col-lg-7">
+        <div class="card shadow-lg border-0 rounded-4">
+          <div class="card-body p-5">
+            <h3 class="mb-4 text-center fw-bold">Create a New Listing</h3>
+            <p class="text-center text-muted mb-4">Share your space with the world</p>
+
+            <form method="POST" action="/listings" novalidate class="needs-validation" enctype="multipart/form-data">
+              <div class="mb-3">
+                <label for="title" class="form-label">Title</label>
+                <input id="title" name="listing[title]" placeholder="Enter Title" type="text" class="form-control"
+                  required />
+                <div class="valid-feedback">Valid title.</div>
+                <div class="invalid-feedback">Title is required.</div>
+              </div>
+
+              <div class="mb-3">
+                <label for="description" class="form-label">Description</label>
+                <textarea id="description" name="listing[description]" placeholder="Enter Description"
+                  class="form-control" rows="3" required></textarea>
+              </div>
+
+              <div class="mb-3">
+                <label for="image" class="form-label">Upload Image</label>
+                <input id="image" name="listing[image]" type="file" class="form-control" />
+              </div>
+
+              <div class="row">
+                <div class="mb-3 col-md-4">
+                  <label for="price" class="form-label">Price</label>
+                  <input id="price" name="listing[price]" placeholder="Enter Price" type="number" class="form-control"
+                    required />
+                </div>
+                <div class="mb-3 col-md-8">
+                  <label for="country" class="form-label">Country</label>
+                  <input id="country" name="listing[country]" placeholder="Enter Country" type="text"
+                    class="form-control" required />
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <label for="location" class="form-label">Location</label>
+                <input id="location" name="listing[location]" placeholder="Enter Location" type="text"
+                  class="form-control" required />
+              </div>
+
+              <div class="mb-3">
+                <label for="category" class="form-label">Category</label>
+                <select id="category" name="listing[category]" class="form-control">
+                  <option value="">Select a category</option>
+                  <option value="Trending">Trending</option>
+                  <option value="Rooms">Rooms</option>
+                  <option value="Iconic Cities">Iconic Cities</option>
+                  <option value="Mountains">Mountains</option>
+                  <option value="Castles">Castles</option>
+                  <option value="Amazing Pools">Amazing Pools</option>
+                  <option value="Camping">Camping</option>
+                  <option value="Farms">Farms</option>
+                  <option value="Arctic">Arctic</option>
+                  <option value="Domes">Domes</option>
+                  <option value="Boats">Boats</option>
+                </select>
+              </div>
+              <div class="d-grid mt-4">
+                <button class="btn btn-primary btn-lg rounded-pill" type="submit">Create Listing</button>
+              </div>
+            </form>
+          </div> <!-- End card-body -->
+        </div> <!-- End card -->
+      </div> <!-- End col -->
+    </div>
+  </div>
+  </div>
+
+  <!-- Geoapify Autocomplete Support -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/geoapify/address-autocomplete-field@0.1.0/dist/address-autocomplete-field.min.css">
+  <script src="https://cdn.jsdelivr.net/gh/geoapify/address-autocomplete-field@0.1.0/dist/address-autocomplete-field.min.js"></script>
+
+  <script>
+    const mapToken = "<%= mapToken %>";
+    const addressInput = document.getElementById("location");
+
+    if (addressInput && mapToken) {
+      // Initialize Geoapify Autocomplete
+      addressInput.addEventListener("input", async (e) => {
+        const value = e.target.value;
+        if (value.length < 3) return;
+
+        // Note: For a production app, we would use a more robust autocomplete library.
+        // For this implementation, we are using the simple native fetch to Geoapify.
+        const url = `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(value)}&apiKey=${mapToken}&limit=5`;
+        
+        try {
+            const response = await fetch(url);
+            const data = await response.json();
+            
+            // Render a custom results dropdown
+            let dropdown = document.getElementById("autocomplete-results");
+            if (!dropdown) {
+                dropdown = document.createElement("div");
+                dropdown.id = "autocomplete-results";
+                dropdown.className = "list-group position-absolute w-100 shadow-lg z-3";
+                addressInput.parentNode.style.position = "relative";
+                addressInput.parentNode.appendChild(dropdown);
+            }
+            
+            dropdown.innerHTML = "";
+            data.features.forEach(feature => {
+                const item = document.createElement("button");
+                item.type = "button";
+                item.className = "list-group-item list-group-item-action";
+                item.innerText = feature.properties.formatted;
+                item.onclick = () => {
+                   addressInput.value = feature.properties.formatted;
+                   if(feature.properties.country) {
+                       document.getElementById("country").value = feature.properties.country;
+                   }
+                   dropdown.innerHTML = "";
+                };
+                dropdown.appendChild(item);
+            });
+        } catch(err) { console.error(err); }
+      });
+
+      // Close dropdown on click outside
+      document.addEventListener("click", (e) => {
+          const dropdown = document.getElementById("autocomplete-results");
+          if(dropdown && e.target !== addressInput) {
+              dropdown.innerHTML = "";
+          }
+      });
+    }
+  </script>

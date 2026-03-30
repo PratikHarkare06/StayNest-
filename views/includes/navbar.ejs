@@ -1,0 +1,1196 @@
+<nav class="navbar navbar-expand-md sticky-top">
+  <div class="container">
+    <a class="navbar-brand d-flex align-items-center" href="/listings" style="color: #ff385c; font-size: 1.5rem; font-weight: 700; text-decoration: none;">
+      <i class="fa-solid fa-house-chimney-window me-2" style="font-size: 1.8rem;"></i>
+      <span class="d-none d-lg-inline" style="letter-spacing: -0.5px;">StayNest</span>
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+      <div class="navbar-nav ms-3">
+        <a class="nav-link" href="/listings">Explore</a>
+      </div>
+
+      <!-- Airbnb-style Search Pill (Mini) -->
+      <div class="navbar-nav mx-auto">
+        <div class="nav-item">
+          <!-- Desktop Trigger (Mini Pill) -->
+          <div
+            class="search-bar-pill border rounded-pill shadow-sm py-2 px-1 ps-3 d-none d-md-flex align-items-center gap-0 bg-white mx-auto cursor-pointer hover-shadow-md transition-all"
+            style="height: 48px; transform: scale(1);">
+
+            <button class="btn btn-sm fw-bold rounded-pill px-3 border-0"
+              onclick="openSearch('where'); event.stopPropagation();">Anywhere</button>
+            <span class="border-end py-3"></span>
+            <button class="btn btn-sm fw-bold rounded-pill px-3 border-0"
+              onclick="openSearch('when'); event.stopPropagation();">Any week</button>
+            <span class="border-end py-3"></span>
+            <button class="btn btn-sm text-muted rounded-pill px-3 border-0"
+              onclick="openSearch('who'); event.stopPropagation();">Add guests</button>
+
+            <div class="rounded-circle d-flex align-items-center justify-content-center text-white me-1"
+              style="width: 32px; height: 32px; background-color: #FF385C;"
+              onclick="openSearch('where'); event.stopPropagation();">
+              <i class="fa-solid fa-magnifying-glass fa-xs"></i>
+            </div>
+          </div>
+
+          <!-- Mobile Pill -->
+          <div
+            class="search-bar-pill-mobile d-md-none shadow-sm border rounded-pill w-100 py-2 px-3 d-flex align-items-center gap-3 bg-white mt-2 mt-md-0"
+            onclick="openSearch('where')">
+            <i class="fa-solid fa-magnifying-glass text-dark"></i>
+            <div class="d-flex flex-column">
+              <span class="fw-bold small lh-1">Where to?</span>
+              <span class="text-muted small" style="font-size: 0.75rem;">Anywhere • Any week • Add guests</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="navbar-nav ms-auto align-items-center">
+        <!-- Become a Host Button -->
+        <a class="btn btn-sm btn-light rounded-pill border-0 me-2 fw-bold px-3 py-2 hover-bg-light text-dark shadow-sm"
+          href="/listings/new" style="font-size: 0.9rem; transition: all 0.2s;">
+          Become a host
+        </a>
+
+        <% if(!currUser){ %>
+          <a class="nav-link fw-bold" href="/login">Sign up / Log in</a>
+          <% } else { %>
+            <div class="dropdown">
+              <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button"
+                data-bs-toggle="dropdown" aria-expanded="false">
+                <div
+                  class="d-inline-block rounded-circle bg-light border d-flex align-items-center justify-content-center me-2"
+                  style="width: 35px; height: 35px; overflow: hidden;">
+                  <img
+                    src="<%= (currUser.image && currUser.image.url) ? currUser.image.url : 'https://images.unsplash.com/photo-1511367461989-f85a21fda167?q=80&w=2831&auto=format&fit=crop' %>"
+                    alt="user" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+                <span>
+                  <%= currUser.username %>
+                </span>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg p-2"
+                style="border-radius: 12px; margin-top: 10px;">
+                <% if(currUser.isAdmin) { %>
+                  <li><a class="dropdown-item rounded-2 text-primary fw-bold" href="/admin"><i
+                        class="fa-solid fa-user-shield me-2"></i>Admin Panel</a></li>
+                  <li>
+                    <hr class="dropdown-divider">
+                  </li>
+                  <% } %>
+                    <li><a class="dropdown-item rounded-2" href="/dashboard"><i
+                          class="fa-solid fa-gauge-high me-2 text-muted"></i>Dashboard</a></li>
+                    <li><a class="dropdown-item rounded-2" href="/messages"><i
+                          class="fa-regular fa-message me-2 text-muted"></i>Messages <span class="badge bg-danger rounded-pill ms-2" style="font-size: 0.65rem;">New</span></a></li>
+                    <li><a class="dropdown-item rounded-2" href="/listings/new"><i
+                          class="fa-solid fa-plus me-2 text-muted"></i>Host a home</a></li>
+                    <li>
+                      <hr class="dropdown-divider">
+                    </li>
+                    <li><a class="dropdown-item rounded-2 text-danger" href="/logout"><i
+                          class="fa-solid fa-right-from-bracket me-2"></i>Logout</a></li>
+              </ul>
+            </div>
+            <% } %>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- Search Modal (Airbnb Style Expanded) -->
+<div class="modal fade" id="searchModal" tabindex="-1" aria-hidden="true" data-bs-focus="false">
+  <div class="modal-dialog modal-lg mt-md-5" style="max-width: 850px;">
+    <div class="modal-content rounded-5 border-0 shadow-lg" style="border-radius: 32px !important;">
+      <div class="modal-body p-4 bg-white rounded-5">
+
+        <!-- Close Button -->
+
+
+        <!-- Tabs removed -->
+
+        <form action="/listings" method="GET">
+          <!-- Hidden Inputs for Search Data -->
+          <input type="hidden" name="adults" id="input-adults" value="0">
+          <input type="hidden" name="children" id="input-children" value="0">
+          <input type="hidden" name="infants" id="input-infants" value="0">
+          <input type="hidden" name="pets" id="input-pets" value="0">
+          <input type="hidden" name="checkIn" id="input-checkIn">
+          <input type="hidden" name="checkOut" id="input-checkOut">
+          <!-- The Big Search Bar (Pixel Perfect 3-Section) -->
+          <div
+            class="search-big-pill border shadow-sm d-flex align-items-center position-relative bg-light rounded-pill row mx-0 g-0"
+            style="height: 66px; overflow: visible;"> <!-- Overflow visible for popups -->
+
+            <!-- Fluid Sliding Highlight Pill -->
+            <div id="search-highlight" class="position-absolute bg-white shadow-sm rounded-pill"
+              style="top: 0; bottom: 0; left: 0; width: 33.333%; transition: transform 0.35s cubic-bezier(0.2, 0, 0, 1), opacity 0.2s ease; z-index: 0; pointer-events: none; opacity: 0;">
+            </div>
+
+            <!-- 1. Where -->
+            <div id="whereSection"
+              class="search-section col position-relative px-4 py-2 hover-bg-white rounded-pill-start cursor-pointer search-input-container h-100 d-flex flex-column justify-content-center">
+              <label class="d-block fw-bold text-dark mb-0 lh-1"
+                style="font-size: 0.75rem; letter-spacing: 0.04em;">Where</label>
+              <input type="text" name="q" id="whereInput" autocomplete="off"
+                class="form-control border-0 shadow-none p-0 text-dark bg-transparent text-truncate fw-bold mt-1"
+                placeholder="Search destinations" style="font-size: 1rem; color: #222;">
+
+              <!-- SUGGESTIONS DROPDOWN (Filterable with Keyboard Navigation) -->
+              <div class="search-suggestions search-popup position-absolute bg-white shadow-lg py-3 mt-3 start-0"
+                style="top: 100%; width: 500px; z-index: 1000; cursor: default; overflow-y: auto; max-height: 480px; border: 1px solid rgba(0,0,0,0.05); border-radius: 32px !important;">
+
+                <!-- Result Count/Title -->
+                <div class="px-4 mb-2 d-flex justify-content-between align-items-center">
+                  <div id="suggestionsTitle" class="small fw-bold text-muted" style="font-size: 0.75rem;">Suggested
+                    destinations</div>
+                  <div id="searchResultCount" class="small text-muted" style="font-size: 0.7rem;"></div>
+                </div>
+
+                <!-- Static Suggestions (Default) -->
+                <div id="staticSuggestions" class="d-flex flex-column">
+                  <!-- Nearby -->
+                  <div class="suggestion-item d-flex align-items-center gap-3 px-4 py-3 hover-bg-light cursor-pointer"
+                    onclick="setDestination('Nearby')">
+                    <div class="d-flex align-items-center justify-content-center rounded-3"
+                      style="width: 48px; height: 48px; background-color: #deebf7; flex-shrink: 0;">
+                      <i class="fa-solid fa-location-arrow text-primary fa-lg"></i>
+                    </div>
+                    <div>
+                      <div class="fw-bold text-dark">Nearby</div>
+                      <div class="text-muted small">Find what's around you</div>
+                    </div>
+                  </div>
+
+                  <!-- Lonavala -->
+                  <div class="suggestion-item d-flex align-items-center gap-3 px-4 py-3 hover-bg-light cursor-pointer"
+                    onclick="setDestination('Lonavala, Maharashtra')">
+                    <div class="d-flex align-items-center justify-content-center rounded-3"
+                      style="width: 48px; height: 48px; background-color: #ffe4e6; flex-shrink: 0;">
+                      <i class="fa-solid fa-mountain-sun text-danger fa-lg"></i>
+                    </div>
+                    <div>
+                      <div class="fw-bold text-dark">Lonavala, Maharashtra</div>
+                      <div class="text-muted small">For sights like Karla Caves</div>
+                    </div>
+                  </div>
+
+                  <!-- North Goa -->
+                  <div class="suggestion-item d-flex align-items-center gap-3 px-4 py-3 hover-bg-light cursor-pointer"
+                    onclick="setDestination('North Goa, Goa')">
+                    <div class="d-flex align-items-center justify-content-center rounded-3"
+                      style="width: 48px; height: 48px; background-color: #fef3d5; flex-shrink: 0;">
+                      <i class="fa-solid fa-umbrella-beach text-warning fa-lg"></i>
+                    </div>
+                    <div>
+                      <div class="fw-bold text-dark">North Goa, Goa</div>
+                      <div class="text-muted small">Popular beach destination</div>
+                    </div>
+                  </div>
+
+                  <!-- Mumbai -->
+                  <div class="suggestion-item d-flex align-items-center gap-3 px-4 py-3 hover-bg-light cursor-pointer"
+                    onclick="setDestination('Mumbai, Maharashtra')">
+                    <div class="d-flex align-items-center justify-content-center rounded-3"
+                      style="width: 48px; height: 48px; background-color: #e2e8f0; flex-shrink: 0;">
+                      <i class="fa-solid fa-building text-secondary fa-lg"></i>
+                    </div>
+                    <div>
+                      <div class="fw-bold text-dark">Mumbai, Maharashtra</div>
+                      <div class="text-muted small">The City of Dreams</div>
+                    </div>
+                  </div>
+
+                  <!-- Jaipur -->
+                  <div class="suggestion-item d-flex align-items-center gap-3 px-4 py-3 hover-bg-light cursor-pointer"
+                    onclick="setDestination('Jaipur, Rajasthan')">
+                    <div class="d-flex align-items-center justify-content-center rounded-3"
+                      style="width: 48px; height: 48px; background-color: #ffedd5; flex-shrink: 0;">
+                      <i class="fa-solid fa-monument" style="color: #d946ef;"></i>
+                    </div>
+                    <div>
+                      <div class="fw-bold text-dark">Jaipur, Rajasthan</div>
+                      <div class="text-muted small">The Pink City</div>
+                    </div>
+                  </div>
+
+                  <!-- Manali -->
+                  <div class="suggestion-item d-flex align-items-center gap-3 px-4 py-3 hover-bg-light cursor-pointer"
+                    onclick="setDestination('Manali, Himachal Pradesh')">
+                    <div class="d-flex align-items-center justify-content-center rounded-3"
+                      style="width: 48px; height: 48px; background-color: #dbeafe; flex-shrink: 0;">
+                      <i class="fa-solid fa-snowflake text-info fa-lg"></i>
+                    </div>
+                    <div>
+                      <div class="fw-bold text-dark">Manali, Himachal Pradesh</div>
+                      <div class="text-muted small">Mountains & Snow</div>
+                    </div>
+                  </div>
+
+                  <!-- Bengaluru -->
+                  <div class="suggestion-item d-flex align-items-center gap-3 px-4 py-3 hover-bg-light cursor-pointer"
+                    onclick="setDestination('Bengaluru, Karnataka')">
+                    <div class="d-flex align-items-center justify-content-center rounded-3"
+                      style="width: 48px; height: 48px; background-color: #dcfce7; flex-shrink: 0;">
+                      <i class="fa-solid fa-tree text-success fa-lg"></i>
+                    </div>
+                    <div>
+                      <div class="fw-bold text-dark">Bengaluru, Karnataka</div>
+                      <div class="text-muted small">The Garden City</div>
+                    </div>
+                  </div>
+
+                  <!-- Udaipur -->
+                  <div class="suggestion-item d-flex align-items-center gap-3 px-4 py-3 hover-bg-light cursor-pointer"
+                    onclick="setDestination('Udaipur, Rajasthan')">
+                    <div class="d-flex align-items-center justify-content-center rounded-3"
+                      style="width: 48px; height: 48px; background-color: #eff6ff; flex-shrink: 0;">
+                      <i class="fa-solid fa-water text-primary fa-lg"></i>
+                    </div>
+                    <div>
+                      <div class="fw-bold text-dark">Udaipur, Rajasthan</div>
+                      <div class="text-muted small">City of Lakes</div>
+                    </div>
+                  </div>
+
+                  <!-- Alibag -->
+                  <div class="suggestion-item d-flex align-items-center gap-3 px-4 py-3 hover-bg-light cursor-pointer"
+                    onclick="setDestination('Alibag, Maharashtra')">
+                    <div class="d-flex align-items-center justify-content-center rounded-3"
+                      style="width: 48px; height: 48px; background-color: #ffe4e6; flex-shrink: 0;">
+                      <i class="fa-solid fa-house-chimney" style="color: #ec486b;"></i>
+                    </div>
+                    <div>
+                      <div class="fw-bold text-dark">Alibag, Maharashtra</div>
+                      <div class="text-muted small">Near you</div>
+                    </div>
+                  </div>
+
+                  <!-- Pune -->
+                  <div class="suggestion-item d-flex align-items-center gap-3 px-4 py-3 hover-bg-light cursor-pointer"
+                    onclick="setDestination('Pune, Maharashtra')">
+                    <div class="d-flex align-items-center justify-content-center rounded-3"
+                      style="width: 48px; height: 48px; background-color: #f3f4f6; flex-shrink: 0;">
+                      <i class="fa-solid fa-city text-secondary fa-lg"></i>
+                    </div>
+                    <div>
+                      <div class="fw-bold text-dark">Pune, Maharashtra</div>
+                      <div class="text-muted small">Popular city destination</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Dynamic Suggestions (Search Results) -->
+                <div id="suggestionsContainer" class="d-flex flex-column d-none">
+                  <!-- Dynamic content will be loaded here -->
+                </div>
+
+                <!-- No Results Message -->
+                <div id="noResults" class="px-4 py-5 text-center d-none">
+                  <i class="fa-solid fa-magnifying-glass fa-2x text-muted mb-3"></i>
+                  <p class="text-muted mb-0">No destinations found</p>
+                  <p class="small text-muted">Try searching for a different location</p>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- Divider -->
+            <div class="vertical-divider align-self-center disabled-on-hover"
+              style="width: 1px; height: 32px; background-color: #ddd;"></div>
+
+            <!-- 2. When -->
+            <div id="whenSection"
+              class="search-section col position-relative px-4 py-2 hover-bg-white cursor-pointer search-input-container h-100 d-flex flex-column justify-content-center">
+              <label class="d-block fw-bold text-dark mb-0 lh-1"
+                style="font-size: 0.75rem; letter-spacing: 0.04em;">When</label>
+              <input type="text" id="whenInput" name="dates"
+                class="form-control border-0 shadow-none p-0 text-muted bg-transparent text-truncate mt-1"
+                placeholder="Add dates" style="font-size: 0.9rem;" autocomplete="off">
+
+
+            </div>
+
+            <!-- Divider -->
+            <div class="vertical-divider align-self-center disabled-on-hover"
+              style="width: 1px; height: 32px; background-color: #ddd;"></div>
+
+            <!-- 3. Who -->
+            <div id="whoSection"
+              class="search-section col position-relative ps-4 pe-2 py-2 hover-bg-white rounded-pill-end cursor-pointer d-flex align-items-center justify-content-between search-input-container h-100">
+              <div class="d-flex flex-column justify-content-center">
+                <label class="d-block fw-bold text-dark mb-0 lh-1"
+                  style="font-size: 0.75rem; letter-spacing: 0.04em;">Who</label>
+                <input type="text" id="whoInput"
+                  class="form-control border-0 shadow-none p-0 text-muted bg-transparent mt-1" placeholder="Add guests"
+                  style="font-size: 0.9rem; width: 100px;" readonly>
+              </div>
+
+              <!-- GUEST POPUP -->
+              <div class="search-guest-popup search-popup position-absolute bg-white shadow-lg p-4 rounded-4 mt-3 end-0"
+                style="top: 100%; width: 400px; z-index: 1000; cursor: default;">
+
+                <!-- Adults -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                  <div>
+                    <div class="fw-bold fs-6">Adults</div>
+                    <div class="text-muted small">Ages 13 or above</div>
+                  </div>
+                  <div class="d-flex align-items-center gap-3">
+                    <button type="button"
+                      class="btn btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center p-0 border-opacity-25"
+                      style="width: 32px; height: 32px;" onclick="updateGuestCount('adults', -1)">
+                      <i class="fa-solid fa-minus small"></i>
+                    </button>
+                    <span class="fw-bold" id="count-adults">0</span>
+                    <button type="button"
+                      class="btn btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center p-0 border-opacity-25"
+                      style="width: 32px; height: 32px;" onclick="updateGuestCount('adults', 1)">
+                      <i class="fa-solid fa-plus small"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <hr class="text-muted opacity-25 my-3">
+
+                <!-- Children -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                  <div>
+                    <div class="fw-bold fs-6">Children</div>
+                    <div class="text-muted small">Ages 2–12</div>
+                  </div>
+                  <div class="d-flex align-items-center gap-3">
+                    <button type="button"
+                      class="btn btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center p-0 border-opacity-25"
+                      style="width: 32px; height: 32px;" onclick="updateGuestCount('children', -1)">
+                      <i class="fa-solid fa-minus small"></i>
+                    </button>
+                    <span class="fw-bold" id="count-children">0</span>
+                    <button type="button"
+                      class="btn btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center p-0 border-opacity-25"
+                      style="width: 32px; height: 32px;" onclick="updateGuestCount('children', 1)">
+                      <i class="fa-solid fa-plus small"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <hr class="text-muted opacity-25 my-3">
+
+                <!-- Infants -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                  <div>
+                    <div class="fw-bold fs-6">Infants</div>
+                    <div class="text-muted small">Under 2</div>
+                  </div>
+                  <div class="d-flex align-items-center gap-3">
+                    <button type="button"
+                      class="btn btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center p-0 border-opacity-25"
+                      style="width: 32px; height: 32px;" onclick="updateGuestCount('infants', -1)">
+                      <i class="fa-solid fa-minus small"></i>
+                    </button>
+                    <span class="fw-bold" id="count-infants">0</span>
+                    <button type="button"
+                      class="btn btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center p-0 border-opacity-25"
+                      style="width: 32px; height: 32px;" onclick="updateGuestCount('infants', 1)">
+                      <i class="fa-solid fa-plus small"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <hr class="text-muted opacity-25 my-3">
+
+                <!-- Pets -->
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <div class="fw-bold fs-6">Pets</div>
+                    <div class="text-muted small text-decoration-underline cursor-pointer">Bringing a service animal?
+                    </div>
+                  </div>
+                  <div class="d-flex align-items-center gap-3">
+                    <button type="button"
+                      class="btn btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center p-0 border-opacity-25"
+                      style="width: 32px; height: 32px;" onclick="updateGuestCount('pets', -1)">
+                      <i class="fa-solid fa-minus small"></i>
+                    </button>
+                    <span class="fw-bold" id="count-pets">0</span>
+                    <button type="button"
+                      class="btn btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center p-0 border-opacity-25"
+                      style="width: 32px; height: 32px;" onclick="updateGuestCount('pets', 1)">
+                      <i class="fa-solid fa-plus small"></i>
+                    </button>
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- Search Button -->
+              <button
+                class="btn btn-danger rounded-circle d-flex align-items-center justify-content-center shadow-md border-0 search-big-btn"
+                style="width: 48px; height: 48px; min-width: 48px; background-color: #FF385C;">
+                <i class="fa-solid fa-magnifying-glass text-white fa-lg"></i>
+              </button>
+            </div>
+
+            <!-- DATE POPUP (Moved) -->
+            <div class="search-date-popup search-popup position-absolute bg-white shadow-lg p-4 rounded-5 mt-3"
+              style="top: 100%; z-index: 1000; cursor: default;">
+
+              <!-- Tabs -->
+              <div class="d-flex justify-content-center mb-4">
+                <div class="bg-light rounded-pill p-1 d-flex" style="background-color: #ebebeb !important;">
+                  <button type="button" id="tab-dates"
+                    class="btn btn-white rounded-pill px-4 py-2 shadow-sm fw-bold small text-dark date-tab active"
+                    style="font-size: 0.85rem;" onclick="switchTab('dates')">Dates</button>
+                  <button type="button" id="tab-months"
+                    class="btn btn-transparent rounded-pill px-4 py-2 border-0 small text-dark fw-bold hover-bg-gray date-tab"
+                    style="font-size: 0.85rem;" onclick="switchTab('months')">Months</button>
+                  <button type="button" id="tab-flexible"
+                    class="btn btn-transparent rounded-pill px-4 py-2 border-0 small text-dark fw-bold hover-bg-gray date-tab"
+                    style="font-size: 0.85rem;" onclick="switchTab('flexible')">Flexible</button>
+                </div>
+              </div>
+
+              <!-- Calendar Container (JS Generated) -->
+              <div id="search-calendar-container" class="d-flex align-items-start justify-content-between gap-5 mb-4"
+                style="min-height: 300px;"></div>
+
+              <!-- Footer (Moved Inside) -->
+              <div class="d-flex gap-2 border-top pt-3 overflow-x-auto" style="scrollbar-width: none;">
+                <button type="button" data-flex="0" onclick="setFlexibility(0, this)"
+                  class="btn btn-outline-dark rounded-pill border-2 fw-bold btn-sm px-3 flex-shrink-0 flex-btn active"
+                  style="font-size: 0.8rem;">Exact dates</button>
+                <button type="button" data-flex="1" onclick="setFlexibility(1, this)"
+                  class="btn btn-outline-light text-dark border rounded-pill btn-sm px-3 flex-shrink-0 hover-border-dark flex-btn"
+                  style="font-size: 0.8rem;">&plusmn; 1 day</button>
+                <button type="button" data-flex="2" onclick="setFlexibility(2, this)"
+                  class="btn btn-outline-light text-dark border rounded-pill btn-sm px-3 flex-shrink-0 hover-border-dark flex-btn"
+                  style="font-size: 0.8rem;">&plusmn; 2 days</button>
+                <button type="button" data-flex="3" onclick="setFlexibility(3, this)"
+                  class="btn btn-outline-light text-dark border rounded-pill btn-sm px-3 flex-shrink-0 hover-border-dark flex-btn"
+                  style="font-size: 0.8rem;">&plusmn; 3 days</button>
+                <button type="button" data-flex="7" onclick="setFlexibility(7, this)"
+                  class="btn btn-outline-light text-dark border rounded-pill btn-sm px-3 flex-shrink-0 hover-border-dark flex-btn"
+                  style="font-size: 0.8rem;">&plusmn; 7 days</button>
+                <button type="button"
+                  class="btn btn-outline-light text-dark border rounded-pill btn-sm px-3 flex-shrink-0 hover-border-dark"
+                  style="font-size: 0.8rem;">&plusmn; 14 days</button>
+              </div>
+            </div>
+          </div>
+      </div>
+
+      <!-- Footer -->
+
+    </div>
+
+  </div>
+  </form>
+</div>
+</div>
+</div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const whereInput = document.getElementById('whereInput');
+    const suggestions = document.querySelector('.search-suggestions');
+    const whereSection = document.getElementById('whereSection');
+
+    if (whereInput && suggestions) {
+      whereInput.addEventListener('focus', () => {
+        document.querySelectorAll('.search-popup').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.search-field-focused').forEach(f => f.classList.remove('search-field-focused'));
+
+        suggestions.classList.add('active');
+        whereSection.classList.add('search-field-focused');
+      });
+      whereSection.addEventListener('click', (e) => {
+        if (e.target !== whereInput) whereInput.focus();
+      });
+      document.addEventListener('click', (e) => {
+        if (!whereSection.contains(e.target) && !suggestions.contains(e.target)) {
+          suggestions.classList.remove('active');
+          whereSection.classList.remove('search-field-focused');
+        }
+      });
+
+      // ===== AJAX Search Logic =====
+      let searchTimeout;
+      let selectedIndex = -1;
+
+      const staticSuggestions = document.getElementById('staticSuggestions');
+      const dynamicSuggestions = document.getElementById('suggestionsContainer');
+      const suggestionsTitle = document.getElementById('suggestionsTitle');
+      const noResults = document.getElementById('noResults');
+      const resultCount = document.getElementById('searchResultCount');
+
+      whereInput.addEventListener('input', (e) => {
+        clearTimeout(searchTimeout);
+        const query = e.target.value.trim();
+
+        if (query.length < 1) {
+          // Show Static
+          if (staticSuggestions) staticSuggestions.classList.remove('d-none');
+          if (dynamicSuggestions) dynamicSuggestions.classList.add('d-none');
+          if (noResults) noResults.classList.add('d-none');
+          if (suggestionsTitle) suggestionsTitle.innerText = 'Suggested destinations';
+          if (resultCount) resultCount.innerText = '';
+
+          // Clear dynamic to be safe
+          if (dynamicSuggestions) dynamicSuggestions.innerHTML = '';
+          return;
+        }
+
+        searchTimeout = setTimeout(() => {
+          fetchDestinations(query);
+        }, 300);
+      });
+
+      async function fetchDestinations(query) {
+        try {
+          // Switch to Dynamic View
+          if (staticSuggestions) staticSuggestions.classList.add('d-none');
+          if (dynamicSuggestions) dynamicSuggestions.classList.remove('d-none');
+          if (suggestionsTitle) suggestionsTitle.innerText = 'Searching...';
+
+          const res = await fetch(`/listings/search?q=${encodeURIComponent(query)}`);
+          const data = await res.json();
+          renderSuggestions(data);
+        } catch (err) {
+          console.error("Search fetch error:", err);
+        }
+      }
+
+      function renderSuggestions(listings) {
+        dynamicSuggestions.innerHTML = '';
+        selectedIndex = -1; // Reset selection
+
+        if (listings.length === 0) {
+          noResults.classList.remove('d-none');
+          resultCount.innerText = '0 results';
+          suggestionsTitle.innerText = 'No results found';
+          return;
+        }
+
+        noResults.classList.add('d-none');
+        resultCount.innerText = `${listings.length} result${listings.length !== 1 ? 's' : ''}`;
+        suggestionsTitle.innerText = 'Search results';
+
+        listings.forEach(listing => {
+          const div = document.createElement('div');
+          div.className = "suggestion-item d-flex align-items-center gap-3 px-4 py-3 hover-bg-light cursor-pointer";
+          div.tabIndex = 0;
+          div.onclick = () => window.location.href = `/listings/${listing._id}`;
+
+          // Image handling
+          const imgUrl = listing.image && listing.image.url ? listing.image.url : '/images/placeholder.jpg';
+
+          div.innerHTML = `
+                <div class="d-flex align-items-center justify-content-center rounded-3"
+                  style="width: 48px; height: 48px; background-color: #f7f7f7; flex-shrink: 0; overflow: hidden;">
+                  <img src="${imgUrl}" class="w-100 h-100 object-fit-cover" alt="listing">
+                </div>
+                <div>
+                  <div class="fw-bold text-dark text-truncate" style="max-width: 300px;">${listing.title}</div>
+                  <div class="text-muted small">${listing.location}, ${listing.country}</div>
+                </div>
+            `;
+
+          div.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') window.location.href = `/listings/${listing._id}`;
+          });
+
+          dynamicSuggestions.appendChild(div);
+        });
+      }
+
+      // ===== Keyboard Navigation (Updated) =====
+      whereInput.addEventListener('keydown', (e) => {
+        // Query visible items (handles both static and dynamic if use same class)
+        const items = document.querySelectorAll('.suggestion-item:not(.d-none)');
+        // Ensure we only pick visible ones inside the active container
+        // Actually, static items are hidden/shown via parent container toggle.
+        // So querySelectorAll('.suggestion-item') might pick hidden ones if I used d-none on items.
+        // But I used d-none on PARENT (#staticSuggestions).
+        // So checking offsetParent !== null checks visibility.
+
+        const visibleItems = Array.from(document.querySelectorAll('.suggestion-item')).filter(el => el.offsetParent !== null);
+
+        if (visibleItems.length === 0) return;
+
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          selectedIndex = Math.min(selectedIndex + 1, visibleItems.length - 1);
+          updateSelection(visibleItems);
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          selectedIndex = Math.max(selectedIndex - 1, -1);
+          updateSelection(visibleItems);
+        } else if (e.key === 'Enter') {
+          if (selectedIndex >= 0 && visibleItems[selectedIndex]) {
+            e.preventDefault();
+            visibleItems[selectedIndex].click();
+          }
+        }
+      });
+
+      function updateSelection(items) {
+        items.forEach((item, idx) => {
+          if (idx === selectedIndex) {
+            item.style.backgroundColor = '#f7f7f7';
+            try { item.scrollIntoView({ block: 'nearest' }); } catch (e) { }
+          } else {
+            item.style.backgroundColor = '';
+          }
+        });
+      }
+
+      // Reset/Restore search when opening
+      whereInput.addEventListener('focus', () => {
+        const query = whereInput.value.trim();
+        if (query.length > 0) {
+          fetchDestinations(query);
+        } else {
+          // Ensure static is visible
+          if (staticSuggestions) staticSuggestions.classList.remove('d-none');
+          if (dynamicSuggestions) dynamicSuggestions.classList.add('d-none');
+          if (noResults) noResults.classList.add('d-none');
+          if (suggestionsTitle) suggestionsTitle.innerText = 'Suggested destinations';
+        }
+      });
+    }
+
+    // Date Popup Logic
+    const whenInput = document.getElementById('whenInput');
+    const whenSection = document.getElementById('whenSection');
+    const datePopup = document.querySelector('.search-date-popup');
+
+    if (whenInput && datePopup) {
+      const toggleDatePopup = () => {
+        document.querySelectorAll('.search-popup').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.search-field-focused').forEach(f => f.classList.remove('search-field-focused'));
+
+        datePopup.classList.add('active');
+        whenSection.classList.add('search-field-focused');
+      };
+
+      whenInput.addEventListener('focus', toggleDatePopup);
+      whenSection.addEventListener('click', (e) => {
+        if (e.target !== whenInput) whenInput.focus();
+      });
+
+      document.addEventListener('click', (e) => {
+        if (!whenSection.contains(e.target) && !datePopup.contains(e.target)) {
+          datePopup.style.display = 'none';
+          whenSection.classList.remove('search-field-focused');
+        }
+      });
+    }
+
+    // Guest Popup Logic
+    const whoInput = document.getElementById('whoInput');
+    const whoSection = document.getElementById('whoSection');
+    const guestPopup = document.querySelector('.search-guest-popup');
+
+    if (whoInput && guestPopup) {
+      const toggleGuestPopup = () => {
+        document.querySelectorAll('.search-popup').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.search-field-focused').forEach(f => f.classList.remove('search-field-focused'));
+
+        guestPopup.classList.add('active');
+        whoSection.classList.add('search-field-focused');
+      };
+
+      // whoInput is readonly but part of the section
+      whoSection.addEventListener('click', (e) => {
+        // Prevent toggling if clicking counter buttons inside popup
+        if (guestPopup.contains(e.target)) return;
+        toggleGuestPopup();
+      });
+
+      document.addEventListener('click', (e) => {
+        if (!whoSection.contains(e.target) && !guestPopup.contains(e.target)) {
+          guestPopup.style.display = 'none';
+          whoSection.classList.remove('search-field-focused');
+        }
+      });
+    }
+  });
+
+  // Guest Counter Logic
+  const guests = { adults: 0, children: 0, infants: 0, pets: 0 };
+
+  function updateGuestCount(type, change) {
+    if (guests[type] + change < 0) return;
+    guests[type] += change;
+    document.getElementById(`count-${type}`).innerText = guests[type];
+
+    // Update Hidden Input
+    const hiddenInput = document.getElementById(`input-${type}`);
+    if (hiddenInput) hiddenInput.value = guests[type];
+
+    updateWhoInput();
+  }
+
+  // Calendar Logic
+  let currentMonthOffset = 0;
+
+  function changeMonth(delta) {
+    const nextOffset = currentMonthOffset + delta;
+    if (nextOffset < 0) return; // Prevent going to past
+    currentMonthOffset = nextOffset;
+    renderCalendar();
+  }
+
+  function renderCalendar() {
+    const container = document.getElementById('search-calendar-container');
+    if (!container) return;
+
+    const today = new Date();
+    const months = [0, 1];
+    let html = '';
+
+    months.forEach((offset, index) => {
+      const totalOffset = currentMonthOffset + offset;
+      const d = new Date(today.getFullYear(), today.getMonth() + totalOffset, 1);
+      const monthName = d.toLocaleString('default', { month: 'long', year: 'numeric' });
+      const daysInMonth = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+      const firstDay = d.getDay();
+
+      // Arrows
+      const prevBtn = index === 0 ? `<button type="button" onclick="changeMonth(-1)" class="btn btn-light rounded-circle p-0 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;"><i class="fa-solid fa-chevron-left small"></i></button>` : `<div style="width: 32px;"></div>`;
+      const nextBtn = index === 1 ? `<button type="button" onclick="changeMonth(1)" class="btn btn-light rounded-circle p-0 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;"><i class="fa-solid fa-chevron-right small"></i></button>` : `<div style="width: 32px;"></div>`;
+
+      html += `<div class="flex-fill">
+           <div class="d-flex justify-content-between align-items-center mb-3">
+              ${prevBtn}
+              <div class="fw-bold">${monthName}</div>
+              ${nextBtn}
+           </div>
+           <div class="d-grid text-center mb-2" style="grid-template-columns: repeat(7, 1fr); gap: 2px;">
+              ${['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(day => `<small class="text-muted fw-bold" style="font-size:0.7rem">${day}</small>`).join('')}
+           </div>
+           <div class="d-grid text-center" style="grid-template-columns: repeat(7, 1fr); row-gap: 8px;">`;
+      for (let i = 0; i < firstDay; i++) html += `<div></div>`;
+      for (let i = 1; i <= daysInMonth; i++) {
+        const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+
+        // Highlight Check
+        let style = "transition:0.2s;";
+        let bgClass = "hover-bg-black";
+        let colorStyle = "";
+
+        if (dateRange.start === dateStr || dateRange.end === dateStr) {
+          style += "background-color: black; color: white;";
+          bgClass = "";
+        }
+
+        html += `<div class="p-2 rounded-circle cursor-pointer ${bgClass} calendar-day" 
+                     onclick="selectDate(this, '${dateStr}')" style="${style}">${i}</div>`;
+      }
+      html += `</div></div>`;
+    });
+    container.innerHTML = html;
+  }
+
+  let dateRange = { start: null, end: null };
+  function selectDate(el, dateStr) {
+    if (!dateRange.start || (dateRange.start && dateRange.end)) {
+      // New Range
+      dateRange.start = dateStr;
+      dateRange.end = null;
+      dateRange.baseEnd = null; // Reset base for flexibility
+      document.querySelectorAll('.calendar-day').forEach(d => {
+        d.className = 'p-2 rounded-circle cursor-pointer hover-bg-black calendar-day'; // Reset
+        d.style.backgroundColor = ''; d.style.color = '';
+      });
+      el.style.backgroundColor = 'black';
+      el.style.color = 'white';
+      document.getElementById('whenInput').value = dateStr;
+    } else {
+      // End Date
+      if (new Date(dateStr) < new Date(dateRange.start)) {
+        // Swap if earlier
+        dateRange.end = dateRange.start;
+        dateRange.start = dateStr;
+      } else {
+        dateRange.end = dateStr;
+      }
+      el.style.backgroundColor = 'black';
+      el.style.color = 'white';
+      dateRange.baseEnd = dateRange.end; // Set new base for flexibility
+      document.getElementById('whenInput').value = `${dateRange.start} – ${dateRange.end}`;
+
+    // Update hidden inputs for search logic
+    document.getElementById('input-checkIn').value = dateRange.start || '';
+    document.getElementById('input-checkOut').value = dateRange.end || '';
+    } // End else
+  } // End function selectDate
+
+  function updateWhoInput() {
+    const totalGuests = guests.adults + guests.children;
+    const totalInfants = guests.infants;
+    const totalPets = guests.pets;
+
+    let arr = [];
+    if (totalGuests > 0) arr.push(`${totalGuests} guest${totalGuests !== 1 ? 's' : ''}`);
+    if (totalInfants > 0) arr.push(`${totalInfants} infant${totalInfants !== 1 ? 's' : ''}`);
+    if (totalPets > 0) arr.push(`${totalPets} pet${totalPets !== 1 ? 's' : ''}`);
+
+    const input = document.getElementById('whoInput');
+    if (input) {
+      input.value = arr.length > 0 ? arr.join(', ') : '';
+    }
+
+    // Update hidden fields for Search Filter Algorithm
+    const adultsInput = document.getElementById('input-adults');
+    const childrenInput = document.getElementById('input-children');
+    const infantsInput = document.getElementById('input-infants');
+    const petsInput = document.getElementById('input-pets');
+    
+    if(adultsInput) adultsInput.value = guests.adults;
+    if(childrenInput) childrenInput.value = guests.children;
+    if(infantsInput) infantsInput.value = guests.infants;
+    if(petsInput) petsInput.value = guests.pets;
+  }
+
+  function setDestination(value) {
+    const input = document.getElementById('whereInput');
+    if (input) {
+      input.value = value;
+      // Auto-advance to When section
+      openSearch('when');
+    }
+  }
+  function openSearch(type) {
+    const modalEl = document.getElementById('searchModal');
+    if (!modalEl) return;
+
+    // References to sections
+    const whereSection = document.getElementById('whereSection');
+    const whenSection = document.getElementById('whenSection');
+    const whoSection = document.getElementById('whoSection');
+    const highlight = document.getElementById('search-highlight');
+    const dividers = document.querySelectorAll('.vertical-divider');
+
+    // Reset styles for unified pill look (Undo previous isolation logic)
+    [whereSection, whenSection, whoSection].forEach(el => {
+      if (el) {
+        el.style.display = 'flex'; // Ensure all visible
+        el.style.borderRadius = '0'; // Reset radius
+        el.style.backgroundColor = 'transparent'; // Transparent bg for bubble under
+        el.classList.remove('search-field-focused');
+        el.classList.remove('animate-section'); // Remove previous animation
+        // Add relative z-index so text sits on top of bubble
+        el.style.position = 'relative';
+        el.style.zIndex = '5';
+      }
+    });
+    // Show dividers again
+    dividers.forEach(el => el.style.display = 'block');
+    // First and last radius fix
+    if (whereSection) whereSection.style.borderTopLeftRadius = '32px';
+    if (whereSection) whereSection.style.borderBottomLeftRadius = '32px';
+    if (whoSection) whoSection.style.borderTopRightRadius = '32px';
+    if (whoSection) whoSection.style.borderBottomRightRadius = '32px';
+
+
+    // Calculate Position for Sliding Highlight
+    let activeIndex = 0;
+    if (type === 'where') activeIndex = 0;
+    else if (type === 'when') activeIndex = 1;
+    else if (type === 'who') activeIndex = 2;
+
+    if (highlight) {
+      highlight.style.opacity = '1';
+      highlight.style.width = '33.33%'; // Assuming equal width for simplicity or calc
+      // Ideally calculated based on offsetWidth of target, but for now fixed % works if flex-1
+      highlight.style.transform = `translateX(${activeIndex * 100}%)`;
+    }
+
+    // Clear any existing focus/popups
+    document.querySelectorAll('.search-popup').forEach(el => el.classList.remove('active'));
+
+    const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+    modal.show();
+
+    // Render Calendar if needed
+    renderCalendar();
+
+    // Popup Trigger Logic
+    const triggerPopup = () => {
+      // Slightly delayed to let slide settle
+      setTimeout(() => {
+        if (type === 'where') {
+          document.querySelector('.search-suggestions')?.classList.add('active');
+          document.getElementById('whereInput')?.focus();
+        } else if (type === 'when') {
+          document.querySelector('.search-date-popup')?.classList.add('active');
+        } else if (type === 'who') {
+          document.querySelector('.search-guest-popup')?.classList.add('active');
+        }
+      }, 200);
+    };
+
+    // If modal is not yet visible, wait for event. If visible, run immediately.
+    if (!modalEl.classList.contains('show')) {
+      modalEl.addEventListener('shown.bs.modal', triggerPopup, { once: true });
+    } else {
+      triggerPopup();
+    }
+  }
+  function switchTab(tabName) {
+    // Reset all tabs
+    document.querySelectorAll('.date-tab').forEach(btn => {
+      btn.className = 'btn btn-transparent rounded-pill px-4 py-2 border-0 small text-dark fw-bold hover-bg-gray date-tab';
+    });
+
+    // Activate clicked tab
+    const activeBtn = document.getElementById(`tab-${tabName}`);
+    if (activeBtn) {
+      activeBtn.className = 'btn btn-white rounded-pill px-4 py-2 shadow-sm fw-bold small text-dark date-tab active';
+    }
+
+    // Logic to change view
+    const container = document.getElementById('search-calendar-container');
+
+    if (tabName === 'dates') {
+      renderCalendar();
+    }
+    else if (tabName === 'months') {
+      // MONTHS TAB - Circular Dial UI
+      container.innerHTML = `
+        <div class="text-center w-100 py-3">
+             <h4 class="fw-bold mb-4">When's your trip?</h4>
+             <div class="position-relative mx-auto mt-5" style="width: 280px; height: 280px;">
+                <!-- Dial Container -->
+                <div class="dial-container">
+                    <div class="dial-active-arc" id="dial-arc"></div>
+                    <div class="dial-center">
+                        <div class="display-3 fw-bold mb-0 lh-1" id="dial-value">5</div>
+                        <div class="h5 fw-bold text-muted">months</div>
+                    </div>
+                     <!-- Invisible Range Input for interaction -->
+                    <input type="range" class="position-absolute w-100 h-100 opacity-0 cursor-pointer" 
+                           style="z-index: 10; top:0; left:0;" 
+                           min="1" max="12" step="1" value="5" 
+                           oninput="updateDialUI(this.value)">
+                </div>
+             </div>
+             <div class="mt-5 fw-bold border-bottom d-inline-block pb-2 px-3" style="font-size: 1.1rem;">
+                 <span id="dial-start">Sun, Mar 1</span> &nbsp;to&nbsp; <span id="dial-end">Sat, Aug 1</span>
+             </div>
+        </div>
+       `;
+      // Initialize Dial
+      setTimeout(() => updateDialUI(5), 50);
+    }
+    else {
+      // FLEXIBLE TAB - Duration & Month Cards
+      container.innerHTML = `
+        <div class="text-center w-100">
+            <h5 class="fw-bold mb-3">How long would you like to stay?</h5>
+            <div class="d-flex justify-content-center gap-2 mb-5">
+                <button type="button" class="btn rounded-pill px-4 py-2 small fw-bold flex-duration-btn active" onclick="toggleFlexDuration(this)">Weekend</button>
+                <button type="button" class="btn rounded-pill px-4 py-2 small fw-bold flex-duration-btn" onclick="toggleFlexDuration(this)">Week</button>
+                <button type="button" class="btn rounded-pill px-4 py-2 small fw-bold flex-duration-btn" onclick="toggleFlexDuration(this)">Month</button>
+            </div>
+            <h5 class="fw-bold mb-4">When do you want to go?</h5>
+            <div class="d-flex gap-3 overflow-x-auto pb-4 px-4 w-100 justify-content-start" id="flexible-months-scroll" style="scrollbar-width: none;">
+                <!-- Month Cards Generated via JS -->
+            </div>
+        </div>
+       `;
+      updateFlexMonthCards();
+      // Initial Input Sync
+      setTimeout(() => updateFlexibleInput(), 50);
+    }
+  }
+
+  // --- Helper Functions for New Tabs ---
+
+  function toggleFlexDuration(btn) {
+    document.querySelectorAll('.flex-duration-btn').forEach(b => {
+      b.classList.remove('active');
+      b.style.backgroundColor = ''; // Clear inline style if any
+    });
+    btn.classList.add('active');
+    updateFlexibleInput();
+  }
+
+  function updateFlexibleInput() {
+    const activeDuration = document.querySelector('.flex-duration-btn.active')?.innerText || '';
+
+    const activeMonths = Array.from(document.querySelectorAll('.flex-month-card.active'))
+      .map(card => card.querySelector('.fw-bold').innerText);
+
+    let dateStr = activeDuration;
+    if (activeMonths.length > 0) {
+      if (activeMonths.length <= 2) {
+        dateStr += ` in ${activeMonths.join(', ')}`;
+      } else {
+        dateStr += ` in ${activeMonths.length} months`;
+      }
+    }
+
+    const whenInput = document.getElementById('whenInput');
+    if (whenInput) whenInput.value = dateStr;
+
+    // Optimization: if user selects duration, maybe trigger next step? 
+    // Airbnb usually keeps it open until they click Search or next section?
+    // For now just update input.
+  }
+
+  function updateFlexMonthCards() {
+    const scrollContainer = document.getElementById('flexible-months-scroll');
+    if (!scrollContainer) return;
+
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const currentYear = new Date().getFullYear();
+    let html = '';
+
+    // Generate cards for next 12 months starting from current month
+    const today = new Date();
+    let m = today.getMonth(); // 0-11
+    let y = today.getFullYear();
+
+    for (let i = 0; i < 12; i++) {
+      // Full name for display, short for logic if needed?
+      // Let's use full name in array if we want full name in input? 
+      // Or keep short for cards to fit? Airbnb uses short like "May", "Jun", "2024".
+      // Let's us full names for the internal logic but short for display if requested.
+      // Actually, the previous code used full names. Let's stick to full names from array but maybe short in display?
+      // The array above I changed to Short names "Jan", "Feb" to fit better in cards?
+      // The previous code had full names.
+      // Let's revert to full names for the array to match previous code style if preferred, 
+      // OR use short names as they are more common in this UI.
+      // I will use full names for the array but potentially check display.
+      // Let's use the standard full names.
+
+      let monthName = new Date(y, m).toLocaleString('default', { month: 'long' });
+
+      html += `
+            <div class="flex-month-card ${i === 0 ? 'active' : ''}" onclick="toggleFlexMonth(this)">
+                <i class="fa-regular fa-calendar flex-month-icon"></i>
+                <div class="small fw-bold">${monthName}</div>
+                <div class="text-muted" style="font-size: 0.75rem;">${y}</div>
+            </div>
+        `;
+      m++;
+      if (m > 11) { m = 0; y++; }
+    }
+    scrollContainer.innerHTML = html;
+
+    // Initial Input Update
+    updateFlexibleInput();
+  }
+
+  function toggleFlexMonth(card) {
+    card.classList.toggle('active');
+    updateFlexibleInput();
+  }
+
+  function updateDialUI(val) {
+    const count = parseInt(val);
+    document.getElementById('dial-value').innerText = count;
+    document.getElementById('dial-value').nextElementSibling.innerText = count === 1 ? 'month' : 'months';
+
+    // Update Arc Gradient (approximate percentage)
+    // 12 months = 360 deg? Or partial arc? Let's say full circle.
+    // 1 month = 30 deg roughly.
+    const deg = count * 30;
+    const arc = document.getElementById('dial-arc');
+    if (arc) {
+      // Use solid gradient stop for visual filling
+      arc.style.background = `conic-gradient(#ff385c 0deg, #ff385c ${deg}deg, #f0f0f0 ${deg}deg)`;
+    }
+
+    // Update Dates (Mock logic relative to today)
+    // Assume starting "next month"
+    const start = new Date();
+    start.setMonth(start.getMonth() + 1);
+    start.setDate(1);
+
+    const end = new Date(start);
+    end.setMonth(end.getMonth() + count);
+    end.setDate(0); // Last day of previous month set
+
+    const opts = { weekday: 'short', month: 'short', day: 'numeric' };
+    document.getElementById('dial-start').innerText = start.toLocaleDateString('en-US', opts);
+    document.getElementById('dial-end').innerText = end.toLocaleDateString('en-US', opts);
+
+    // Sync to Input for Form Submission
+    const dateRangeStr = `${start.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} – ${end.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}`;
+    const whenInput = document.getElementById('whenInput');
+    if (whenInput) whenInput.value = dateRangeStr;
+  }
+
+
+  function setFlexibility(days, btn) {
+    // UI Update
+    document.querySelectorAll('.flex-btn').forEach(b => {
+      b.className = 'btn btn-outline-light text-dark border rounded-pill btn-sm px-3 flex-shrink-0 hover-border-dark flex-btn';
+    });
+    btn.className = 'btn btn-outline-dark rounded-pill border-2 fw-bold btn-sm px-3 flex-shrink-0 flex-btn active';
+
+    if (dateRange.start) {
+      // Ensure baseEnd is set for logic
+      if (!dateRange.baseEnd && dateRange.end) {
+        dateRange.baseEnd = dateRange.end;
+      } else if (!dateRange.baseEnd && dateRange.start) {
+        dateRange.baseEnd = dateRange.start;
+      }
+
+      if (dateRange.baseEnd) {
+        // Backend Logic: Extend Range (optional, keeping previous logic valid)
+        const newEndDate = new Date(dateRange.baseEnd);
+        newEndDate.setDate(newEndDate.getDate() + days);
+        const isoDate = newEndDate.toISOString().split('T')[0];
+        dateRange.end = isoDate;
+
+        // Display Logic: Format like "14 Feb ±3"
+        const formatDate = (d) => new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+        const startStr = formatDate(dateRange.start);
+
+        let displayStr = "";
+        if (days === 0) {
+          // Exact Dates
+          if (dateRange.baseEnd && dateRange.start !== dateRange.baseEnd) {
+            displayStr = `${startStr} – ${formatDate(dateRange.baseEnd)}`;
+          } else {
+            displayStr = `${startStr}`;
+          }
+        } else {
+          // Flexible
+          if (dateRange.baseEnd && dateRange.start !== dateRange.baseEnd) {
+            displayStr = `${startStr} – ${formatDate(dateRange.baseEnd)} ±${days}`;
+          } else {
+            displayStr = `${startStr} ±${days}`;
+          }
+        }
+
+        document.getElementById('whenInput').value = displayStr;
+
+        // Re-render calendar
+        renderCalendar();
+      }
+    }
+  }
+
+  // Expose to Global Scope (Fix for onclick handlers)
+  window.updateGuestCount = updateGuestCount;
+  window.changeMonth = changeMonth;
+  window.renderCalendar = renderCalendar;
+  window.selectDate = selectDate;
+  window.setDestination = setDestination;
+  window.openSearch = openSearch;
+  window.switchTab = switchTab;
+  window.setFlexibility = setFlexibility;
+  window.toggleFlexDuration = toggleFlexDuration;
+  window.toggleFlexMonth = toggleFlexMonth;
+  window.updateDialUI = updateDialUI;
+  window.updateFlexibleInput = updateFlexibleInput;
+</script>

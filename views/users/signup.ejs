@@ -1,0 +1,71 @@
+<% layout("/layouts/boilerplate") %>
+
+    <div class="row justify-content-center align-items-center" style="min-height: 80vh;">
+        <div class="col-md-9 col-lg-6 col-xl-5 bg-white p-5 rounded-5 shadow-lg border">
+            <div class="text-center mb-4">
+                <i class="fa-regular fa-compass fa-3x text-danger mb-3"></i>
+                <h2 class="fw-bold">Create an account</h2>
+                <p class="text-muted">Welcome to Wanderlust</p>
+            </div>
+
+            <form method="POST" action="/signup" novalidate class="needs-validation" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label for="username" class="form-label fw-bold">Username</label>
+                    <input type="text" class="form-control rounded-4 p-3" id="username" name="username"
+                        placeholder="Choose a username" required autofocus>
+                    <div class="invalid-feedback">Please choose a username.</div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="email" class="form-label fw-bold">Email address</label>
+                    <input type="email" class="form-control rounded-4 p-3" id="email" name="email"
+                        placeholder="name@example.com" required>
+                    <div class="invalid-feedback">Please enter a valid email.</div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="image" class="form-label fw-bold">Profile Picture</label>
+                    <input type="file" class="form-control rounded-4 p-3" id="image" name="image">
+                    <div class="form-text text-muted">Optional. A default avatar will be used if skipped.</div>
+                </div>
+
+                <div class="mb-4">
+                    <label for="password" class="form-label fw-bold">Password</label>
+                    <input type="password" class="form-control rounded-4 p-3" id="password" name="password"
+                        placeholder="Create a strong password" required>
+                    <div class="invalid-feedback">Please enter a password.</div>
+                </div>
+
+                <button class="btn btn-danger w-100 py-3 rounded-pill fw-bold fs-5 shadow-sm" type="submit"
+                    style="background-color: #FF385C; border: none;">Sign Up</button>
+            </form>
+
+            <div class="text-center mt-4">
+                <p class="text-muted">Already have an account? <a href="/login"
+                        class="text-danger fw-bold text-decoration-none">Log in</a></p>
+            </div>
+
+            <div class="d-flex align-items-center my-4">
+                <hr class="flex-grow-1">
+                <span class="mx-3 text-muted small">OR</span>
+                <hr class="flex-grow-1">
+            </div>
+
+            <button
+                class="btn btn-outline-dark w-100 py-2 rounded-pill fw-semibold mb-3 d-flex align-items-center justify-content-center position-relative">
+                <i class="fa-brands fa-google position-absolute start-0 ms-4 fa-lg"></i>
+                <span class="flex-grow-1">Continue with Google</span>
+            </button>
+            <button
+                class="btn btn-outline-dark w-100 py-2 rounded-pill fw-semibold d-flex align-items-center justify-content-center position-relative">
+                <i class="fa-brands fa-facebook position-absolute start-0 ms-4 fa-lg text-primary"></i>
+                <span class="flex-grow-1">Continue with Facebook</span>
+            </button>
+        </div>
+    </div>
+
+    <style>
+        body {
+            overflow-x: hidden;
+        }
+    </style>

@@ -1,0 +1,58 @@
+<% layout("/layouts/boilerplate") %>
+
+    <div class="container py-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold">All Bookings (<%= bookings.length %>)</h2>
+            <a href="/admin" class="btn btn-outline-dark rounded-pill">Back to Dashboard</a>
+        </div>
+
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="ps-4">Property</th>
+                                <th>Guest</th>
+                                <th>Dates</th>
+                                <th>Total Price</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% for(let booking of bookings) { %>
+                                <tr>
+                                    <td class="ps-4">
+                                        <% if(booking.listing) { %>
+                                            <span class="fw-semibold">
+                                                <%= booking.listing.title %>
+                                            </span>
+                                            <% } else { %>
+                                                <span class="text-muted fst-italic">Listing Deleted</span>
+                                                <% } %>
+                                    </td>
+                                    <td>
+                                        <%= booking.user ? booking.user.username : 'Unknown' %>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted d-block">In: <%= new
+                                                Date(booking.checkIn).toLocaleDateString() %></small>
+                                        <small class="text-muted d-block">Out: <%= new
+                                                Date(booking.checkOut).toLocaleDateString() %></small>
+                                    </td>
+                                    <td>&#8377;<%= booking.totalPrice.toLocaleString("en-IN") %>
+                                    </td>
+                                    <td>
+                                        <span
+                                            class="badge <%= booking.status === 'Confirmed' ? 'bg-success' : 'bg-warning' %> bg-opacity-10 text-<%= booking.status === 'Confirmed' ? 'success' : 'warning' %>">
+                                            <%= booking.status %>
+                                        </span>
+                                    </td>
+                                </tr>
+                                <% } %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>

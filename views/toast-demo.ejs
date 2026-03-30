@@ -1,0 +1,119 @@
+<% layout("/layouts/boilerplate") %>
+
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <h1 class="fw-bold mb-4">🎉 Toast Notifications Demo</h1>
+                <p class="text-muted mb-5">Click the buttons below to see different types of toast notifications in
+                    action!</p>
+
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold mb-3">Basic Toasts</h5>
+                        <div class="d-flex flex-wrap gap-2">
+                            <button class="btn btn-success"
+                                onclick="toastSuccess('Success!', 'Your action was completed successfully.')">
+                                <i class="fa-solid fa-check me-2"></i>Success Toast
+                            </button>
+                            <button class="btn btn-danger"
+                                onclick="toastError('Error!', 'Something went wrong. Please try again.')">
+                                <i class="fa-solid fa-xmark me-2"></i>Error Toast
+                            </button>
+                            <button class="btn btn-warning"
+                                onclick="toastWarning('Warning!', 'Please review your information.')">
+                                <i class="fa-solid fa-exclamation me-2"></i>Warning Toast
+                            </button>
+                            <button class="btn btn-info"
+                                onclick="toastInfo('Info', 'Here is some useful information.')">
+                                <i class="fa-solid fa-info me-2"></i>Info Toast
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold mb-3">Real-World Examples</h5>
+                        <div class="d-flex flex-wrap gap-2">
+                            <button class="btn btn-outline-primary"
+                                onclick="toastSuccess('Added to Wishlist', 'This property has been saved to your wishlist.')">
+                                <i class="fa-solid fa-heart me-2"></i>Add to Wishlist
+                            </button>
+                            <button class="btn btn-outline-success"
+                                onclick="toastSuccess('Booking Confirmed!', 'Your booking has been confirmed. Check your email for details.', 5000)">
+                                <i class="fa-solid fa-check-circle me-2"></i>Confirm Booking
+                            </button>
+                            <button class="btn btn-outline-danger"
+                                onclick="toastError('Login Required', 'Please log in to continue.')">
+                                <i class="fa-solid fa-user me-2"></i>Login Error
+                            </button>
+                            <button class="btn btn-outline-warning"
+                                onclick="toastWarning('Incomplete Profile', 'Please complete your profile to list a property.')">
+                                <i class="fa-solid fa-user-circle me-2"></i>Profile Warning
+                            </button>
+                            <button class="btn btn-outline-info"
+                                onclick="toastInfo('New Message', 'You have a new message from the host.')">
+                                <i class="fa-solid fa-envelope me-2"></i>New Message
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold mb-3">Custom Duration</h5>
+                        <div class="d-flex flex-wrap gap-2">
+                            <button class="btn btn-outline-secondary"
+                                onclick="toastInfo('Quick Toast', 'This disappears in 1 second', 1000)">
+                                1 Second
+                            </button>
+                            <button class="btn btn-outline-secondary"
+                                onclick="toastInfo('Normal Toast', 'This disappears in 3 seconds', 3000)">
+                                3 Seconds (Default)
+                            </button>
+                            <button class="btn btn-outline-secondary"
+                                onclick="toastInfo('Long Toast', 'This stays for 10 seconds', 10000)">
+                                10 Seconds
+                            </button>
+                            <button class="btn btn-outline-secondary"
+                                onclick="toast.show('info', 'Permanent Toast', 'This stays until you close it', 0)">
+                                Permanent (Manual Close)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold mb-3">Multiple Toasts</h5>
+                        <button class="btn btn-dark" onclick="showMultipleToasts()">
+                            <i class="fa-solid fa-layer-group me-2"></i>Show Multiple Toasts
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mt-5 p-4 bg-light rounded-3">
+                    <h5 class="fw-bold mb-3">💻 Usage in Your Code</h5>
+                    <pre class="bg-white p-3 rounded border"><code>// Simple usage
+toastSuccess('Title', 'Message');
+toastError('Title', 'Message');
+toastWarning('Title', 'Message');
+toastInfo('Title', 'Message');
+
+// With custom duration (in milliseconds)
+toastSuccess('Title', 'Message', 5000);
+
+// Advanced usage
+toast.show('success', 'Title', 'Message', 3000);</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showMultipleToasts() {
+            setTimeout(() => toastInfo('Step 1', 'Processing your request...'), 0);
+            setTimeout(() => toastWarning('Step 2', 'Validating information...'), 500);
+            setTimeout(() => toastSuccess('Step 3', 'All done!'), 1000);
+        }
+    </script>

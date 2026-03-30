@@ -1,0 +1,31 @@
+<% for (let listing of allListings) { %>
+    <div class="col mb-4 fade-in-up">
+        <a href="/listings/<%= listing._id %>" class="listing-link">
+            <div class="card h-100 listing-card">
+                <img src="<%- listing.image && listing.image.url ? listing.image.url : '/images/placeholder.jpg' %>"
+                    class="card-img-top" alt="<%= listing.title %>" style="height: 20rem; object-fit: cover" />
+                <div class="card-img-overlay">
+                    <% if(currUser) { %>
+                        <form action="/users/wishlist/<%= listing._id %>" method="POST"
+                            class="d-inline position-absolute end-0 top-0 p-3" style="z-index: 10;">
+                            <button class="btn btn-sm rounded-circle"
+                                style="background-color: white; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;">
+                                <i
+                                    class="<%= currUser.wishlist.some(id => id.equals(listing._id)) ? 'fa-solid text-danger' : 'fa-regular' %> fa-heart"></i>
+                            </button>
+                        </form>
+                        <% } %>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">
+                        <b>
+                            <%= listing.title %>
+                        </b><br />
+                        &#8377; <%= listing.price.toLocaleString("en-IN") %> /night
+                            <i class="tax-info"> &nbsp; &nbsp; + 18% GST</i>
+                    </p>
+                </div>
+            </div>
+        </a>
+    </div>
+    <% } %>

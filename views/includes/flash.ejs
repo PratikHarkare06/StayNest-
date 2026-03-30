@@ -1,0 +1,15 @@
+<% if(success && success.length> 0) { %>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            toastSuccess('Success', '<%= success %>', 4000);
+        });
+    </script>
+    <% } %>
+
+        <% if(error && error.length) { %>
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    toastError('Error', '<%= error %>', 5000);
+                });
+            </script>
+            <% } %>

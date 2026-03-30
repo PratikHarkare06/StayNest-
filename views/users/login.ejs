@@ -1,0 +1,121 @@
+<% layout("/layouts/boilerplate") %>
+
+<!-- Load Axios to securely pipe the Authorization Token -->
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+<div class="row justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="col-md-9 col-lg-6 col-xl-5 bg-white p-5 rounded-5 shadow-lg border">
+        <div class="text-center mb-4">
+            <i class="fa-solid fa-house-chimney-window fa-3x mb-3" style="color: #FF385C;"></i>
+            <h2 class="fw-bold">Welcome to StayNest</h2>
+            <p class="text-muted">Log in or Sign up magically to continue</p>
+        </div>
+
+        <button id="google-btn" class="btn btn-outline-dark w-100 py-3 rounded-pill fw-bold mb-4 d-flex align-items-center justify-content-center position-relative shadow-sm" style="transition: all 0.2s; border: 1px solid #222; color: #222;">
+            <i class="fa-brands fa-google position-absolute start-0 ms-4 fs-5"></i>
+            <span class="flex-grow-1">Continue with Google</span>
+        </button>
+
+        <style>
+          #google-btn:hover {
+            background-color: #f7f7f7 !important;
+            color: #000 !important;
+            border-color: #000 !important;
+          }
+        </style>
+
+        <div class="d-flex align-items-center my-4">
+            <hr class="flex-grow-1">
+            <span class="mx-3 text-muted small fw-bold">OR CONTINUE WITH EMAIL</span>
+            <hr class="flex-grow-1">
+        </div>
+
+        <form id="email-form" novalidate class="needs-validation">
+            <div class="mb-3">
+                <input type="email" class="form-control rounded-4 p-3" id="email" required placeholder="Email Address">
+            </div>
+
+            <div class="mb-4">
+                <input type="password" class="form-control rounded-4 p-3" id="password" required placeholder="Password">
+            </div>
+
+            <button class="btn w-100 py-3 rounded-pill fw-bold fs-5 text-white shadow-sm" type="submit" style="background-color: #FF385C; border: none;" id="email-btn">
+                Continue
+            </button>
+            <p class="text-muted small text-center mt-3">By logging in, you agree to the StayNest Terms of Service and Privacy Policy. New accounts are created automatically.</p>
+        </form>
+    </div>
+</div>
+
+<script type="module">
+    // Modern Firebase Modular Architecture (V10 SDK)
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+    // Unescape the highly secure dynamic configuration injected by the Node Server
+    const firebaseConfig = JSON.parse('<%- JSON.stringify(firebaseConfig) %>');
+
+    // Boot Firebase Instance
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
+
+    // === The Vault Key: Token Interchange Engine ===
+    const verifyWithServer = async (user) => {
+        try {
+            // Extractor JSON Web Token from Google Firebase
+            const idToken = await user.getIdToken();
+            
+            // Fire token safely to Expres session management logic via POST
+            const response = await axios.post('/login', { idToken });
+            
+            if(response.data.success) {
+                // Backend verification succeeded, drop into app naturally
+                window.location.href = response.data.redirectUrl;
+            }
+        } catch(err) {
+            console.error(err);
+            alert("Security handshake failed. Could not verify with internal server.");
+        }
+    };
+
+    // Listen for Unified Google SSO Events
+    document.getElementById('google-btn').addEventListener('click', async () => {
+        try {
+            const result = await signInWithPopup(auth, provider);
+            verifyWithServer(result.user);
+        } catch(err) {
+            console.error("Google Auth Flow Intentionally Closed or Interrupted", err);
+        }
+    });
+
+    // Listen for Unified Email Magic Link (Login OR Dynamic Registration)
+    document.getElementById('email-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const btn = document.getElementById('email-btn');
+        btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Processing...`;
+        
+        try {
+            // Always treat email entry as a Login attempt first
+            const result = await signInWithEmailAndPassword(auth, email, password);
+            verifyWithServer(result.user);
+        } catch(err) {
+            // Intelligent Auto-Creation Protocol (Industry Standard Airbnb UX)
+            // If the Firebase engine rejects saying account doesn't exist, we silently create it for them.
+            if(err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
+                try {
+                    const result = await createUserWithEmailAndPassword(auth, email, password);
+                    verifyWithServer(result.user);
+                } catch(signupErr) {
+                    alert("Account setup failed: " + signupErr.message);
+                    btn.innerHTML = `Continue`;
+                }
+            } else {
+                alert(err.message);
+                btn.innerHTML = `Continue`;
+            }
+        }
+    });
+</script>

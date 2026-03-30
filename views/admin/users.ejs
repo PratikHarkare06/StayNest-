@@ -1,0 +1,62 @@
+<% layout("/layouts/boilerplate") %>
+
+    <div class="container py-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold">All Users (<%= users.length %>)</h2>
+            <a href="/admin" class="btn btn-outline-dark rounded-pill">Back to Dashboard</a>
+        </div>
+
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="ps-4">User</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th class="text-end pe-4">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% for(let rUser of users) { %>
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-primary bg-opacity-10 rounded-circle text-primary fw-bold d-flex align-items-center justify-content-center me-3"
+                                                style="width:40px;height:40px;">
+                                                <%= rUser.username[0].toUpperCase() %>
+                                            </div>
+                                            <span class="fw-semibold">
+                                                <%= rUser.username %>
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <%= rUser.email %>
+                                    </td>
+                                    <td>
+                                        <% if(rUser.isAdmin) { %>
+                                            <span class="badge bg-success bg-opacity-10 text-success">Admin</span>
+                                            <% } else { %>
+                                                <span
+                                                    class="badge bg-secondary bg-opacity-10 text-secondary">User</span>
+                                                <% } %>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <% if(!rUser.isAdmin) { %>
+                                            <form method="POST" action="/admin/users/<%= rUser._id %>?_method=DELETE"
+                                                class="d-inline" onsubmit="return confirm('Are you sure?');">
+                                                <button class="btn btn-sm btn-light text-danger rounded-circle"><i
+                                                        class="fa-solid fa-trash"></i></button>
+                                            </form>
+                                            <% } %>
+                                    </td>
+                                </tr>
+                                <% } %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
