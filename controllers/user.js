@@ -123,66 +123,109 @@ module.exports.updateProfile = async (req, res) => {
     }
 };
 
+module.exports.renderHostDashboard = async (req, res) => {
+    try {
+        const user = req.user;
+        const myListings = await Listing.find({ owner: user._id }).sort({ createdAt: -1 });
+        const listingIds = myListings.map(l => l._id);
+
+        // Fetch all bookings for these listings
+        const hostBookings = await Booking.find({
+            listing: { $in: listingIds },
+            status: { $ne: 'Cancelled' }
+        }).populate('user listing').sort({ createdAt: -1 });
+
+        // Financial KPIs
+        const totalRevenue = hostBookings.reduce((acc, curr) => acc + curr.totalPrice, 0);
+        const activeBookings = hostBookings.filter(b => b.status === 'Confirmed' && new Date(b.checkOut) >= new Date()).length;
+        
+        // Monthly Trends Calculation
+        const currentYear = new Date().getFullYear();
+        const monthlyRevenue = new Array(12).fill(0);
+        const monthlyBookings = new Array(12).fill(0);
+
+        hostBookings.forEach(booking => {
+            const date = new Date(booking.createdAt);
+            if(date.getFullYear() === currentYear) {
+                const month = date.getMonth();
+                monthlyRevenue[month] += booking.totalPrice;
+                monthlyBookings[month]++;
+            }
+        });
+
+        // Top Performing Listing
+        const performanceMap = {};
+        hostBookings.forEach(b => {
+             const key = b.listing._id.toString();
+             performanceMap[key] = (performanceMap[key] || 0) + b.totalPrice;
+        });
+
+        const topListingId = Object.keys(performanceMap).reduce((a, b) => performanceMap[a] > performanceMap[b] ? a : b, null);
+        const topListing = topListingId ? myListings.find(l => l._id.toString() === topListingId) : null;
+
+        res.render("users/host-dashboard.ejs", {
+            user,
+            myListings,
+            hostBookings,
+            stats: {
+                totalRevenue,
+                activeBookings,
+                totalListings: myListings.length,
+                monthlyRevenue,
+                monthlyBookings,
+                topListing
+            }
+        });
+    } catch (e) {
+        console.error("Host Dashboard Error:", e);
+        req.flash("error", "Failed to load host insights.");
+        res.redirect("/dashboard");
+    }
+};
+
 module.exports.renderDashboard = async (req, res) => {
     try {
         const user = await User.findById(req.user._id).populate('wishlist');
         const myListings = await Listing.find({ owner: req.user._id }).populate('reviews');
         const myBookings = await Booking.find({ user: req.user._id }).populate('listing');
 
-        // Host Analytics Logic
+        // Basic calculation for the main user dashboard
         const listingIds = myListings.map(l => l._id);
-        console.log(`[DEBUG] Dashboard for ${req.user.username} (${req.user._id})`);
-        console.log(`[DEBUG] Owned Listings: ${listingIds.length}`);
-
         const hostBookings = await Booking.find({
             listing: { $in: listingIds },
-            status: { $in: ['Confirmed', 'Pending'] }
-        }).populate('user');
-
-        console.log(`[DEBUG] Host Bookings Found: ${hostBookings.length}`);
-        if (hostBookings.length > 0) {
-            hostBookings.forEach(b => {
-                console.log(`   - Booking ID: ${b._id}, Price: ${b.totalPrice}, Status: ${b.status}, Created: ${b.createdAt}`);
-            });
-        }
-
-        // Rating Calculation
-        let totalStars = 0;
-        let totalReviews = 0;
-        myListings.forEach(listing => {
-            if (listing.reviews && listing.reviews.length > 0) {
-                listing.reviews.forEach(r => {
-                    totalStars += r.rating;
-                    totalReviews++;
-                });
-            }
-        });
-        const avgRating = totalReviews > 0 ? (totalStars / totalReviews).toFixed(1) : "N/A";
-
-        const hostStats = {
-            totalEarnings: hostBookings.reduce((acc, curr) => acc + curr.totalPrice, 0),
-            totalBookings: hostBookings.length,
-            bookingsByMonth: new Array(12).fill(0), // Jan-Dec
-            earningsByMonth: new Array(12).fill(0),
-            avgRating: avgRating
-        };
-
-        const currentYear = new Date().getFullYear();
-
-        hostBookings.forEach(booking => {
-            const bookingDate = new Date(booking.createdAt);
-            if (bookingDate.getFullYear() === currentYear) {
-                const month = bookingDate.getMonth(); // 0-11
-                hostStats.bookingsByMonth[month]++;
-                hostStats.earningsByMonth[month] += booking.totalPrice;
-            }
+            status: { $ne: 'Cancelled' }
         });
 
-        res.render("users/dashboard.ejs", { user, myListings, myBookings, hostStats, hostBookings });
+        res.render("users/dashboard.ejs", { user, myListings, myBookings, hostBookings });
     } catch (e) {
         console.error(e);
         req.flash("error", "Could not load dashboard data.");
         res.redirect("/listings");
+    }
+};
+
+module.exports.verifyId = async (req, res) => {
+    try {
+        if (!req.file) {
+            req.flash("error", "Please upload a valid ID document.");
+            return res.redirect("/dashboard");
+        }
+
+        const user = await User.findById(req.user._id);
+        user.idDocument = {
+            url: req.file.path,
+            filename: req.file.filename
+        };
+        // Auto-verify for demo purposes, or keep false until admin approves
+        user.isVerified = true; 
+        await user.save();
+
+        req.flash("success", "✓ Identity verified! A verification badge has been added to your profile.");
+        res.redirect("/dashboard");
+    } catch (e) {
+        console.error("Verification Error:", e);
+        req.flash("error", "Identity verification failed.");
+        res.redirect("/dashboard");
     }
 };
 

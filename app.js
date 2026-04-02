@@ -11,6 +11,7 @@ const http = require("http");
 const server = http.createServer(app);
 const { Server } = require("socket.io");
 const io = new Server(server);
+app.set('io', io); // Expose io for use in controllers
 const mongoose = require("mongoose");
 const path = require("path");
 const methodOverride = require("method-override");
@@ -191,83 +192,128 @@ app.use((err, req, res, next) => {
   }
 });
 
-// SOCKET.IO REAL-TIME MESSAGING ENGINE
+// ─── SOCKET.IO REAL-TIME ENGINE ──────────────────────────────────────────────
 const Message = require("./models/message");
 
+// Track online users: userId → Set of socketIds (multi-tab support)
+const onlineUsers = new Map();
+
 io.on("connection", (socket) => {
-    // console.log("User connected via WebSocket:", socket.id);
-    
-    // User binds their uniquely generated Database ID to their live WebSocket room
-    socket.on("register_user", (userId) => {
-        socket.join(userId);
-    });
 
-    // Handle high-velocity incoming messages
-    socket.on("send_message", async (data) => {
-        try {
-            // Persist locally to DB instantly
-            const newMessage = new Message({
-                sender: data.senderId,
-                receiver: data.receiverId,
-                content: data.content
-            });
-            await newMessage.save();
-            
-            // Populate sender info before broadcasting so UI has avatar/name
-            await newMessage.populate("sender", "username image");
+  // ── 1. PRESENCE: User comes online ─────────────────────────────────────────
+  socket.on("register_user", (userId) => {
+    socket.join(userId);
+    socket.userId = userId;
 
-            // Broadcast back out specifically to the targeted individual (and self)
-            io.to(data.receiverId).emit("new_message", newMessage);
-            io.to(data.senderId).emit("new_message", newMessage); // Echo for rapid UI update
+    if (!onlineUsers.has(userId)) onlineUsers.set(userId, new Set());
+    onlineUsers.get(userId).add(socket.id);
 
-            // ALGORITHMIC PUSH NOTIFICATION (Feature 4)
-            const User = require("./models/user");
-            const receiver = await User.findById(data.receiverId).select("fcmTokens");
-            
-            if (receiver && receiver.fcmTokens && receiver.fcmTokens.length > 0) {
-                const admin = require("./utils/firebase");
-                const payload = {
-                    notification: {
-                        title: `Message from ${newMessage.sender.username}`,
-                        body: data.content.length > 60 ? data.content.substring(0, 57) + "..." : data.content
-                    },
-                    data: {
-                        senderId: data.senderId,
-                        type: "CHAT_MESSAGE"
-                    },
-                    tokens: receiver.fcmTokens
-                };
+    // Broadcast online status to everyone
+    io.emit("user_online", { userId });
+  });
 
-                admin.messaging().sendEachForMulticast(payload)
-                    .then(response => {
-                        // Token Hygiene: Clean up expired/invalid tokens reported by Google
-                        if (response.failureCount > 0) {
-                            const failedTokens = [];
-                            response.responses.forEach((resp, idx) => {
-                                if (!resp.success) {
-                                    const errorCode = resp.error.code;
-                                    if (errorCode === 'messaging/invalid-registration-token' ||
-                                        errorCode === 'messaging/registration-token-not-registered') {
-                                        failedTokens.push(receiver.fcmTokens[idx]);
-                                    }
-                                }
-                            });
-                            if (failedTokens.length > 0) {
-                                User.updateOne({ _id: data.receiverId }, { $pull: { fcmTokens: { $in: failedTokens } } }).exec();
-                            }
-                        }
-                    })
-                    .catch(err => console.error("FCM Delivery Bypass:", err));
+  // ── 2. MESSAGING: Send & persist ───────────────────────────────────────────
+  socket.on("send_message", async (data) => {
+    try {
+      const newMessage = new Message({
+        sender: data.senderId,
+        recipient: data.recipientId,
+        content: data.content,
+        listingId: data.listingId || null
+      });
+      await newMessage.save();
+      await newMessage.populate("sender", "username image");
+
+      // Emit to both recipient and sender rooms
+      io.to(data.recipientId).emit("new_message", newMessage);
+      io.to(data.senderId).emit("new_message", newMessage);
+
+      // Push notification (Firebase)
+      const User = require("./models/user");
+      const recipient = await User.findById(data.recipientId).select("fcmTokens");
+      if (recipient && recipient.fcmTokens && recipient.fcmTokens.length > 0) {
+        // Only send push if recipient is NOT currently online
+        if (!onlineUsers.has(data.recipientId) || onlineUsers.get(data.recipientId).size === 0) {
+          try {
+            const admin = require("./utils/firebase");
+            const payload = {
+              notification: {
+                title: `Message from ${newMessage.sender.username}`,
+                body: data.content.length > 60 ? data.content.substring(0, 57) + "..." : data.content
+              },
+              data: { senderId: data.senderId, type: "CHAT_MESSAGE" },
+              tokens: recipient.fcmTokens
+            };
+            const response = await admin.messaging().sendEachForMulticast(payload);
+            // Token hygiene
+            if (response.failureCount > 0) {
+              const failedTokens = response.responses
+                .map((resp, idx) => (!resp.success ? recipient.fcmTokens[idx] : null))
+                .filter(Boolean);
+              if (failedTokens.length > 0) {
+                User.updateOne({ _id: data.recipientId }, { $pull: { fcmTokens: { $in: failedTokens } } }).exec();
+              }
             }
-
-        } catch(err) {
-            console.error("Critical Socket Save Error:", err);
+          } catch (err) { console.error("FCM Error:", err.message); }
         }
-    });
+      }
 
-    socket.on("disconnect", () => {
-        // Handle cleanup if necessary
+    } catch (err) {
+      console.error("Socket Message Error:", err);
+    }
+  });
+
+  // ── 3. TYPING INDICATORS ───────────────────────────────────────────────────
+  socket.on("typing_start", ({ senderId, recipientId }) => {
+    io.to(recipientId).emit("typing_start", { senderId });
+  });
+
+  socket.on("typing_stop", ({ senderId, recipientId }) => {
+    io.to(recipientId).emit("typing_stop", { senderId });
+  });
+
+  // ── 4. READ RECEIPTS ────────────────────────────────────────────────────────
+  socket.on("mark_read", async ({ senderId, recipientId }) => {
+    try {
+      await Message.updateMany(
+        { sender: senderId, recipient: recipientId, read: false },
+        { $set: { read: true } }
+      );
+      // Notify sender their messages were read
+      io.to(senderId).emit("messages_read", { by: recipientId });
+    } catch (err) {
+      console.error("Mark-read error:", err);
+    }
+  });
+
+  // ── 5. LIVE BOOKING AVAILABILITY ───────────────────────────────────────────
+  // When a booking is confirmed, notify everyone on that listing's "room"
+  socket.on("join_listing", (listingId) => {
+    socket.join(`listing:${listingId}`);
+  });
+
+  socket.on("booking_made", (data) => {
+    // Broadcast to every viewer of this listing (except the booker)
+    socket.to(`listing:${data.listingId}`).emit("listing_booked", {
+      listingId: data.listingId,
+      checkIn: data.checkIn,
+      checkOut: data.checkOut
     });
+  });
+
+  // ── 6. PRESENCE: User goes offline ─────────────────────────────────────────
+  socket.on("disconnect", () => {
+    if (socket.userId) {
+      const sockets = onlineUsers.get(socket.userId);
+      if (sockets) {
+        sockets.delete(socket.id);
+        if (sockets.size === 0) {
+          onlineUsers.delete(socket.userId);
+          io.emit("user_offline", { userId: socket.userId });
+        }
+      }
+    }
+  });
 });
 
 server.listen(PORT, () => {

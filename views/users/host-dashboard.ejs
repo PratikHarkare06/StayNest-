@@ -1,0 +1,257 @@
+<% layout("/layouts/boilerplate") %>
+
+<style>
+    .analytics-card {
+        border: 1px solid rgba(0,0,0,0.08);
+        border-radius: 20px;
+        transition: transform 0.2s, box-shadow 0.2s;
+        background: white;
+    }
+    .analytics-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+    }
+    .stat-pill {
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 14px;
+    }
+    .booking-row {
+        transition: background 0.2s;
+        cursor: pointer;
+    }
+    .booking-row:hover {
+        background: #f8f9fa;
+    }
+</style>
+
+<div class="container mt-4 mb-5 pb-5">
+    <!-- Header -->
+    <div class="row align-items-center mb-5">
+        <div class="col-md-7">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-2">
+                    <li class="breadcrumb-item"><a href="/dashboard" class="text-decoration-none text-muted">Dashboard</a></li>
+                    <li class="breadcrumb-item active fw-bold" aria-current="page">Host Insights</li>
+                </ol>
+            </nav>
+            <h1 class="fw-bold mb-1">Host Analytics</h1>
+            <p class="text-muted mb-0">Track your property performance and earnings.</p>
+        </div>
+        <div class="col-md-5 text-md-end mt-3 mt-md-0">
+            <a href="/listings/new" class="btn btn-dark rounded-pill px-4 py-2 hover-shadow">
+                <i class="fa-solid fa-plus me-2"></i> Create New Listing
+            </a>
+        </div>
+    </div>
+
+    <!-- KPI Section -->
+    <div class="row g-4 mb-5">
+        <!-- Total Revenue -->
+        <div class="col-md-3">
+            <div class="analytics-card p-4 h-100 shadow-sm">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="stat-pill bg-success bg-opacity-10 text-success">
+                        <i class="fa-solid fa-wallet fa-lg"></i>
+                    </div>
+                </div>
+                <h6 class="text-muted small fw-bold text-uppercase mb-1">Total Revenue</h6>
+                <h3 class="fw-bold mb-0">₹<%= stats.totalRevenue.toLocaleString("en-IN") %></h3>
+                <div class="mt-2 text-success small">
+                    <i class="fa-solid fa-arrow-trend-up me-1"></i> Lifetime earnings
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Bookings -->
+        <div class="col-md-3">
+            <div class="analytics-card p-4 h-100 shadow-sm">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="stat-pill bg-primary bg-opacity-10 text-primary">
+                        <i class="fa-solid fa-calendar-check fa-lg"></i>
+                    </div>
+                </div>
+                <h6 class="text-muted small fw-bold text-uppercase mb-1">Active Bookings</h6>
+                <h3 class="fw-bold mb-0"><%= stats.activeBookings %></h3>
+                <div class="mt-2 text-muted small">Upcoming or current trips</div>
+            </div>
+        </div>
+
+        <!-- Managed Listings -->
+        <div class="col-md-3">
+            <div class="analytics-card p-4 h-100 shadow-sm">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="stat-pill bg-warning bg-opacity-10 text-warning">
+                        <i class="fa-solid fa-door-open fa-lg"></i>
+                    </div>
+                </div>
+                <h6 class="text-muted small fw-bold text-uppercase mb-1">Listings</h6>
+                <h3 class="fw-bold mb-0"><%= stats.totalListings %></h3>
+                <div class="mt-2 text-muted small">Properties on StayNest</div>
+            </div>
+        </div>
+
+        <!-- Top Performer -->
+        <div class="col-md-3">
+            <div class="analytics-card p-4 h-100 shadow-sm">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="stat-pill bg-danger bg-opacity-10 text-danger">
+                        <i class="fa-solid fa-trophy fa-lg"></i>
+                    </div>
+                </div>
+                <h6 class="text-muted small fw-bold text-uppercase mb-1">Top Performer</h6>
+                <h6 class="fw-bold mb-0 text-truncate" style="max-width: 150px;">
+                    <%= stats.topListing ? stats.topListing.title : 'N/A' %>
+                </h6>
+                <div class="mt-2 text-muted small">Highest grossing listing</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="row g-4 mb-5">
+        <div class="col-lg-8">
+            <div class="analytics-card p-4 shadow-sm h-100">
+                <h5 class="fw-bold mb-4">Revenue Trend (<%= new Date().getFullYear() %>)</h5>
+                <div style="height: 300px; width: 100%;">
+                    <canvas id="revenueChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="analytics-card p-4 shadow-sm h-100">
+                <h5 class="fw-bold mb-4">Booking Velocity</h5>
+                <div style="height: 300px; width: 100%;">
+                    <canvas id="bookingChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Bookings Table -->
+    <div class="analytics-card bg-white p-4 shadow-sm overflow-hidden">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="fw-bold mb-0">Recent Reservations</h5>
+        </div>
+        
+        <div class="table-responsive">
+            <table class="table table-borderless align-middle mb-0">
+                <thead class="bg-light rounded-3">
+                    <tr>
+                        <th class="ps-3 py-3 text-muted small fw-bold text-uppercase">Guest</th>
+                        <th class="py-3 text-muted small fw-bold text-uppercase">Listing</th>
+                        <th class="py-3 text-muted small fw-bold text-uppercase">Check-In</th>
+                        <th class="py-3 text-muted small fw-bold text-uppercase">Status</th>
+                        <th class="py-3 text-muted small fw-bold text-uppercase text-end pe-3">Payout</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if(hostBookings.length === 0) { %>
+                        <tr>
+                            <td colspan="5" class="text-center py-5 text-muted">
+                                <i class="fa-solid fa-inbox fa-3x mb-3 opacity-25"></i>
+                                <p class="mb-0">No bookings yet. Start hosting today!</p>
+                            </td>
+                        </tr>
+                    <% } else { %>
+                        <% for(let booking of hostBookings) { %>
+                            <tr class="booking-row border-bottom">
+                                <td class="ps-3 py-4">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="bg-dark rounded-circle text-white d-flex align-items-center justify-content-center" style="width: 38px; height: 38px; font-size: 0.8rem;">
+                                            <%= booking.user.username[0].toUpperCase() %>
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold text-dark"><%= booking.user.username %></div>
+                                            <div class="text-muted small"><%= booking.user.email %></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="fw-semibold text-dark"><%= booking.listing.title %></div>
+                                    <div class="text-muted small"><%= booking.listing.location %></div>
+                                </td>
+                                <td class="text-muted fw-medium">
+                                    <%= new Date(booking.checkIn).toLocaleDateString('en-IN', {day: 'numeric', month: 'short', year: 'numeric'}) %>
+                                </td>
+                                <td>
+                                    <span class="badge rounded-pill bg-success bg-opacity-10 text-success px-3 py-2 fw-bold" style="font-size: 0.7rem;">
+                                        <%= booking.status %>
+                                    </span>
+                                </td>
+                                <td class="text-end pe-3 fw-bold text-dark">
+                                    ₹<%= booking.totalPrice.toLocaleString("en-IN") %>
+                                </td>
+                            </tr>
+                        <% } %>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js for data visualization -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const revenueData = [<%= stats.monthlyRevenue.join(',') %>];
+        const bookingData = [<%= stats.monthlyBookings.join(',') %>];
+
+        // Revenue Chart
+        const revCtx = document.getElementById('revenueChart').getContext('2d');
+        new Chart(revCtx, {
+            type: 'line',
+            data: {
+                labels: months,
+                datasets: [{
+                    label: 'Monthly Revenue (₹)',
+                    data: revenueData,
+                    borderColor: '#ff385c',
+                    backgroundColor: 'rgba(255, 56, 92, 0.05)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#ff385c'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+
+        // Booking Chart
+        const bookCtx = document.getElementById('bookingChart').getContext('2d');
+        new Chart(bookCtx, {
+            type: 'bar',
+            data: {
+                labels: months,
+                datasets: [{
+                    label: 'Bookings',
+                    data: bookingData,
+                    backgroundColor: '#fe9700',
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    });
+</script>

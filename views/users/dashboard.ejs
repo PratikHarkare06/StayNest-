@@ -1,5 +1,38 @@
 <% layout("/layouts/boilerplate") %>
 
+    <!-- Success Celebration Logic -->
+    <% if(typeof success !== 'undefined' || (typeof query !== 'undefined' && query.success === 'booking')) { %>
+        <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                // Confetti Celebration
+                const duration = 3 * 1000;
+                const animationEnd = Date.now() + duration;
+                const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 9999 };
+
+                const randomInRange = (min, max) => Math.random() * (max - min) + min;
+
+                const interval = setInterval(function() {
+                    const timeLeft = animationEnd - Date.now();
+
+                    if (timeLeft <= 0) {
+                        return clearInterval(interval);
+                    }
+
+                    const particleCount = 50 * (timeLeft / duration);
+                    // since particles fall down, start a bit higher than random
+                    confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
+                    confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
+                }, 250);
+
+                // Show Success Toast
+                if (typeof toastSuccess === 'function') {
+                    toastSuccess('Pack your bags!', 'Your booking has been confirmed. You can see it in your trips below.');
+                }
+            });
+        </script>
+    <% } %>
+
     <div class="container-fluid dashboard-container">
         <div class="row">
             <!-- Sidebar / Profile Section -->
@@ -12,13 +45,24 @@
                             <img src="<%= user.image && user.image.url ? user.image.url : 'https://images.unsplash.com/photo-1511367461989-f85a21fda167?q=80&w=2831&auto=format&fit=crop' %>"
                                 alt="profile-image" class="rounded-circle profile-img border border-4 border-white">
                         </div>
-                        <h4 class="text-white fw-bold mb-1">@<%= user.username %>
+                        <h4 class="text-white fw-bold mb-1">
+                            @<%= user.username %>
+                            <% if(user.isVerified) { %>
+                                <i class="fa-solid fa-circle-check text-info ms-1" style="font-size: 0.9rem;" title="Verified Identity"></i>
+                            <% } %>
                         </h4>
                         <p class="text-white-50 small mb-0">
                             <%= user.email %>
                         </p>
                     </div>
                     <div class="card-body p-4">
+                        <% if(!user.isVerified) { %>
+                            <div class="alert alert-warning border-0 rounded-4 py-2 px-3 small mb-4 d-flex align-items-center gap-2">
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                                <span>Get verified to build trust with hosts.</span>
+                            </div>
+                        <% } %>
+
                         <div class="d-flex justify-content-around text-center mb-4">
                             <div>
                                 <h5 class="fw-bold mb-0 text-dark">
@@ -44,11 +88,52 @@
                             <i class="fa-solid fa-quote-left text-danger me-2"></i>
                             <%= user.bio || "No bio added yet. Tell the world a bit about yourself!" %>
                         </p>
-                        <button class="btn btn-outline-dark rounded-pill w-100 btn-sm" data-bs-toggle="modal"
-                            data-bs-target="#editProfileModal">Edit Profile</button>
-                        <p class="text-center mt-3 text-muted" style="font-size: 0.8rem;">Member since <%= new
-                                Date().getFullYear() %>
+                        
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-outline-dark rounded-pill btn-sm" data-bs-toggle="modal"
+                                data-bs-target="#editProfileModal">Edit Profile</button>
+                            
+                            <% if(!user.isVerified) { %>
+                                <button class="btn btn-dark rounded-pill btn-sm" data-bs-toggle="modal"
+                                    data-bs-target="#verifyIdModal">
+                                    <i class="fa-solid fa-shield-halved me-1"></i> Verify Identity
+                                </button>
+                            <% } else { %>
+                                <div class="text-center py-1">
+                                    <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3">
+                                        <i class="fa-solid fa-check-double me-1"></i> ID Verified
+                                    </span>
+                                </div>
+                            <% } %>
+                        </div>
+
+                        <p class="text-center mt-3 text-muted mb-0" style="font-size: 0.8rem;">Member since <%= new
+                                Date(user.createdAt).getFullYear() %>
                         </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Verify ID Modal -->
+            <div class="modal fade" id="verifyIdModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content rounded-4 border-0 shadow">
+                        <div class="modal-header border-0 pb-0">
+                            <h5 class="fw-bold">Verify Your Identity</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body p-4">
+                            <p class="text-muted small mb-4">Upload a clear photo of your government-issued ID (Passport, Driving License, or Aadhaar). This remains private and helps keep StayNest safe.</p>
+                            <form action="/dashboard/verify-id" method="POST" enctype="multipart/form-data">
+                                <div class="mb-4">
+                                    <label class="form-label fw-bold small text-uppercase">Identification Document</label>
+                                    <input type="file" name="idDocument" class="form-control rounded-3" required>
+                                </div>
+                                <button type="submit" class="btn btn-danger w-100 rounded-pill fw-bold py-2 shadow-sm" style="background:#FF385C;">
+                                    Submit for Verification
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -88,77 +173,153 @@
 
                     <!-- My Bookings Tab -->
                     <div class="tab-pane fade show active" id="bookings" role="tabpanel">
-                        <% if(myBookings && myBookings.length> 0) { %>
-                            <div class="row">
-                                <% for(let booking of myBookings) { %>
-                                    <div class="col-xl-6 mb-4">
-                                        <div class="card h-100 border-0 shadow-sm booking-card position-relative">
-                                            <div class="row g-0 h-100">
-                                                <div class="col-4">
-                                                    <img src="/images/placeholder.jpg"
-                                                        data-src="<%= booking.listing.image.url %>"
-                                                        class="img-fluid rounded-start h-100 object-fit-cover lazy-load"
-                                                        alt="listing" style="min-height: 150px;">
+                        <% if(myBookings && myBookings.length > 0) { %>
+
+                        <style>
+                        .trip-card {
+                          border-radius: 20px !important;
+                          overflow: hidden;
+                          transition: transform 0.22s, box-shadow 0.22s;
+                          border: 1px solid #ebebeb !important;
+                          background: #fff;
+                        }
+                        .trip-card:hover { transform: translateY(-4px); box-shadow: 0 12px 36px rgba(0,0,0,0.08) !important; }
+
+                        .trip-card-img { width: 140px; min-height: 140px; object-fit: cover; flex-shrink: 0; }
+
+                        @media(max-width:576px) { .trip-card-img { width: 100px; } }
+
+                        .trip-status-upcoming { background:#e6f9f0; color:#0a7a45; }
+                        .trip-status-active    { background:#fff3cd; color:#856404; }
+                        .trip-status-completed { background:#f0f0f0; color:#555; }
+                        .trip-status-cancelled { background:#fde8ec; color:#C13515; }
+
+                        .countdown-chip {
+                          display: inline-flex; align-items: center; gap: 0.35rem;
+                          background: #fff8f0; border: 1px solid #fde0c4;
+                          border-radius: 20px; padding: 0.25rem 0.75rem;
+                          font-size: 0.78rem; font-weight: 600; color: #c45000;
+                        }
+                        </style>
+
+                            <div class="d-flex justify-content-between align-items-center mb-4 px-1">
+                              <h5 class="fw-bold mb-0 text-dark"><%= myBookings.length %> Trip<%= myBookings.length !== 1 ? 's' : '' %></h5>
+                              <a href="/listings" class="btn btn-outline-dark rounded-pill btn-sm px-4 fw-bold">
+                                <i class="fa-solid fa-plus me-1"></i> New Trip
+                              </a>
+                            </div>
+
+                            <div class="d-flex flex-column gap-3">
+                                <% const now = new Date(); %>
+                                <% for(let booking of myBookings.sort((a,b) => new Date(b.checkIn) - new Date(a.checkIn))) { %>
+                                <%
+                                  const ci = new Date(booking.checkIn);
+                                  const co = new Date(booking.checkOut);
+                                  const nights = Math.ceil(Math.abs(co - ci) / 86400000);
+                                  const daysUntil = Math.ceil((ci - now) / 86400000);
+                                  let tripState = 'completed';
+                                  if (booking.status === 'Cancelled') tripState = 'cancelled';
+                                  else if (now >= ci && now <= co)     tripState = 'active';
+                                  else if (now < ci)                   tripState = 'upcoming';
+                                %>
+
+                                <div class="card trip-card border-0 shadow-sm">
+                                    <div class="row g-0">
+                                        <!-- Image -->
+                                        <div class="col-auto">
+                                            <img src="<%= booking.listing.image ? booking.listing.image.url : '/images/placeholder.jpg' %>"
+                                                 class="trip-card-img rounded-start h-100"
+                                                 alt="<%= booking.listing.title %>"
+                                                 onerror="this.src='/images/placeholder.jpg'">
+                                        </div>
+
+                                        <!-- Content -->
+                                        <div class="col">
+                                            <div class="card-body py-3 px-4 d-flex flex-column h-100 justify-content-between">
+                                                <div>
+                                                    <div class="d-flex justify-content-between align-items-start mb-1">
+                                                        <h6 class="card-title fw-bold mb-0 text-truncate" style="max-width:280px;">
+                                                            <%= booking.listing.title %>
+                                                        </h6>
+                                                        <span class="badge rounded-pill px-3 py-1 trip-status-<%= tripState %> flex-shrink-0 ms-2">
+                                                            <% if(tripState === 'upcoming')  { %><i class="fa-regular fa-clock me-1"></i>Upcoming
+                                                            <% } else if(tripState === 'active') { %><i class="fa-solid fa-map-location-dot me-1"></i>Active
+                                                            <% } else if(tripState === 'cancelled') { %><i class="fa-solid fa-ban me-1"></i>Cancelled
+                                                            <% } else { %><i class="fa-solid fa-check me-1"></i>Completed<% } %>
+                                                        </span>
+                                                    </div>
+
+                                                    <p class="text-muted small mb-2">
+                                                        <i class="fa-solid fa-location-dot me-1"></i><%= booking.listing.location %>, <%= booking.listing.country %>
+                                                    </p>
+
+                                                    <!-- Dates Grid -->
+                                                    <div class="d-flex flex-wrap gap-2 mb-3">
+                                                        <div class="bg-light rounded-3 px-3 py-1" style="min-width: 100px;">
+                                                            <div class="text-muted" style="font-size:0.65rem;font-weight:700;text-transform:uppercase;">Check-in</div>
+                                                            <div class="fw-bold" style="font-size:0.85rem;"><%= ci.toLocaleDateString('en-IN', {day:'numeric',month:'short'}) %></div>
+                                                        </div>
+                                                        <div class="bg-light rounded-3 px-3 py-1" style="min-width: 100px;">
+                                                            <div class="text-muted" style="font-size:0.65rem;font-weight:700;text-transform:uppercase;">Check-out</div>
+                                                            <div class="fw-bold" style="font-size:0.85rem;"><%= co.toLocaleDateString('en-IN', {day:'numeric',month:'short'}) %></div>
+                                                        </div>
+                                                        <div class="bg-light rounded-3 px-3 py-1">
+                                                            <div class="text-muted" style="font-size:0.65rem;font-weight:700;text-transform:uppercase;">Nights</div>
+                                                            <div class="fw-bold text-center" style="font-size:0.85rem;"><%= nights %></div>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Insights -->
+                                                    <% if (tripState === 'upcoming' && daysUntil > 0) { %>
+                                                    <div class="countdown-chip mb-2">
+                                                        <i class="fa-solid fa-fire"></i>
+                                                        <% if(daysUntil === 1) { %>Tomorrow!
+                                                        <% } else { %><%= daysUntil %> days to go<% } %>
+                                                    </div>
+                                                    <% } else if (tripState === 'active') { %>
+                                                    <div class="countdown-chip mb-2" style="background:#e6f9f0;border-color:#a8e6c8;color:#0a7a45;">
+                                                        <i class="fa-solid fa-circle-dot"></i> Happening now
+                                                    </div>
+                                                    <% } %>
                                                 </div>
-                                                <div class="col-8">
-                                                    <div
-                                                        class="card-body py-3 pe-3 ps-2 d-flex flex-column h-100 justify-content-between">
-                                                        <!-- Whole card link -->
-                                                        <a href="/listings/<%= booking.listing._id %>"
-                                                            class="stretched-link"></a>
 
-                                                        <div>
-                                                            <h6 class="card-title fw-bold text-truncate mb-1">
-                                                                <%= booking.listing.title %>
-                                                            </h6>
-                                                            <p class="text-muted small mb-2"><i
-                                                                    class="fa-solid fa-location-dot me-1"></i>
-                                                                <%= booking.listing.location %>
-                                                            </p>
-
-                                                            <div class="d-flex align-items-center mb-2">
-                                                                <div class="badge bg-light text-dark border me-2">
-                                                                    <i class="fa-regular fa-calendar me-1"></i>
-                                                                    <%= new
-                                                                        Date(booking.checkIn).toLocaleDateString('en-GB')
-                                                                        %> - <%= new
-                                                                            Date(booking.checkOut).toLocaleDateString('en-GB')
-                                                                            %>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-
-                                                        <div class="d-flex justify-content-between align-items-end">
-                                                            <div>
-                                                                <span
-                                                                    class="badge <%= booking.status === 'Confirmed' ? 'bg-success' : 'bg-warning' %> bg-opacity-10 text-<%= booking.status === 'Confirmed' ? 'success' : 'warning' %> px-2 py-1">
-                                                                    <%= booking.status %>
-                                                                </span>
-                                                            </div>
-                                                            <div class="text-end">
-                                                                <small class="text-muted d-block">Total Price</small>
-                                                                <span class="fw-bold text-dark">&#8377; <%=
-                                                                        booking.totalPrice.toLocaleString("en-IN") %>
-                                                                </span>
-                                                            </div>
-                                                        </div>
+                                                <!-- Actions -->
+                                                <div class="d-flex justify-content-between align-items-center pt-2 border-top mt-1">
+                                                    <div>
+                                                        <span class="fw-bold text-dark">&#8377;<%= booking.totalPrice.toLocaleString("en-IN") %></span>
+                                                        <span class="text-muted small ms-1">total</span>
+                                                    </div>
+                                                    <div class="d-flex gap-2">
+                                                        <a href="/listings/<%= booking.listing._id %>" class="btn btn-sm btn-light rounded-pill px-3 border fw-semibold">
+                                                            Listing
+                                                        </a>
+                                                        <% if(tripState === 'upcoming') { %>
+                                                        <form method="POST" action="/listings/<%= booking.listing._id %>/bookings/<%= booking._id %>/cancel?_method=DELETE"
+                                                              onsubmit="return confirm('Cancel your trip to <%= booking.listing.title %>?')">
+                                                            <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-bold">
+                                                                Cancel
+                                                            </button>
+                                                        </form>
+                                                        <% } %>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                    <% } %>
-                            </div>
-                            <% } else { %>
-                                <div class="text-center py-5 bg-white rounded-4 shadow-sm">
-                                    <i class="fa-solid fa-suitcase-rolling fa-3x text-muted mb-3 opacity-50"></i>
-                                    <h5 class="fw-bold text-muted">No trips booked... yet!</h5>
-                                    <p class="text-muted mb-4">Time to dust off your bags and start planning your next
-                                        adventure.</p>
-                                    <a href="/listings" class="btn btn-outline-danger rounded-pill px-4">Detailed
-                                        Search</a>
                                 </div>
                                 <% } %>
+                            </div>
+
+                        <% } else { %>
+                            <div class="text-center py-5 bg-white rounded-4 shadow-sm border">
+                                <i class="fa-solid fa-suitcase-rolling fa-3x text-muted mb-3 opacity-25"></i>
+                                <h5 class="fw-bold text-dark">No trips booked yet</h5>
+                                <p class="text-muted mb-4">Time to dust off your bags and start planning your next escape.</p>
+                                <a href="/listings" class="btn btn-danger rounded-pill px-4 fw-bold" style="background:#FF385C;border:none;">
+                                    Explore Stays
+                                </a>
+                            </div>
+                        <% } %>
                     </div>
 
                     <!-- My Listings Tab -->
@@ -291,355 +452,178 @@
 
                     <!-- Analytics Tab -->
                     <div class="tab-pane fade" id="analytics" role="tabpanel">
-                        <% if(typeof hostStats !=='undefined' ) { %>
-                            <div class="row g-4 mb-4">
+                        <% if(typeof hostStats !== 'undefined' ) { %>
+                            <!-- Host Header Stats -->
+                            <div class="row g-3 mb-4">
                                 <div class="col-md-4">
-                                    <a href="#earnings-chart" class="text-decoration-none">
-                                        <div class="card border-0 shadow-sm rounded-4 text-white card-hover"
-                                            style="background: linear-gradient(135deg, #008489 0%, #2ec4b6 100%);">
-                                            <div class="card-body p-4">
-                                                <div class="d-flex align-items-center mb-2">
-                                                    <div class="bg-white bg-opacity-25 rounded-circle p-2 me-3">
-                                                        <i class="fa-solid fa-indian-rupee-sign fa-lg"></i>
-                                                    </div>
-                                                    <h6 class="mb-0 opacity-75">Total Earnings</h6>
-                                                </div>
-                                                <h3 class="fw-bold mb-0">&#8377; <%=
-                                                        hostStats.totalEarnings.toLocaleString("en-IN") %>
-                                                </h3>
+                                    <div class="card border-0 shadow-sm rounded-4 p-3 h-100" style="background: #fff;">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="bg-success bg-opacity-10 text-success rounded-circle d-flex align-items-center justify-content-center" style="width:50px;height:50px;font-size:1.2rem;">
+                                                <i class="fa-solid fa-indian-rupee-sign"></i>
+                                            </div>
+                                            <div>
+                                                <div class="text-muted small fw-bold text-uppercase" style="letter-spacing:0.05em;">Earnings</div>
+                                                <h4 class="fw-bold mb-0">₹<%= hostStats.totalEarnings.toLocaleString("en-IN") %></h4>
                                             </div>
                                         </div>
-                                    </a>
+                                    </div>
                                 </div>
                                 <div class="col-md-4">
-                                    <a href="#client-bookings" class="text-decoration-none">
-                                        <div class="card border-0 shadow-sm rounded-4 bg-white card-hover">
-                                            <div class="card-body p-4">
-                                                <div class="d-flex align-items-center mb-2">
-                                                    <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3">
-                                                        <i class="fa-solid fa-calendar-check text-primary fa-lg"></i>
-                                                    </div>
-                                                    <h6 class="mb-0 text-muted">Total Bookings</h6>
-                                                </div>
-                                                <h3 class="fw-bold mb-0 text-dark">
-                                                    <%= hostStats.totalBookings %>
-                                                </h3>
+                                    <div class="card border-0 shadow-sm rounded-4 p-3 h-100" style="background: #fff;">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center" style="width:50px;height:50px;font-size:1.2rem;">
+                                                <i class="fa-solid fa-calendar-check"></i>
+                                            </div>
+                                            <div>
+                                                <div class="text-muted small fw-bold text-uppercase" style="letter-spacing:0.05em;">Bookings</div>
+                                                <h4 class="fw-bold mb-0"><%= hostStats.totalBookings %></h4>
                                             </div>
                                         </div>
-                                    </a>
+                                    </div>
                                 </div>
                                 <div class="col-md-4">
-                                    <a href="#host-reviews" class="text-decoration-none">
-                                        <div class="card border-0 shadow-sm rounded-4 bg-white card-hover">
-                                            <div class="card-body p-4">
-                                                <div class="d-flex align-items-center mb-2">
-                                                    <div class="bg-warning bg-opacity-10 rounded-circle p-2 me-3">
-                                                        <i class="fa-solid fa-star text-warning fa-lg"></i>
-                                                    </div>
-                                                    <h6 class="mb-0 text-muted">Avg. Rating</h6>
-                                                </div>
-                                                <h3 class="fw-bold mb-0 text-dark">
-                                                    <%= hostStats.avgRating %>
-                                                </h3>
+                                    <div class="card border-0 shadow-sm rounded-4 p-3 h-100" style="background: #fff;">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="bg-warning bg-opacity-10 text-warning rounded-circle d-flex align-items-center justify-content-center" style="width:50px;height:50px;font-size:1.2rem;">
+                                                <i class="fa-solid fa-star"></i>
+                                            </div>
+                                            <div>
+                                                <div class="text-muted small fw-bold text-uppercase" style="letter-spacing:0.05em;">Rating</div>
+                                                <h4 class="fw-bold mb-0"><%= hostStats.avgRating %><span class="text-muted small">/5</span></h4>
                                             </div>
                                         </div>
-                                    </a>
-                                </div>
-                            </div>
-
-                            <div id="analytics-wrapper" class="card border-0 shadow-sm p-4 mb-4 rounded-4 scroll-mt">
-                                <h5 class="fw-bold mb-4">Analytics Overview (<%= new Date().getFullYear() %>)</h5>
-                                <div style="position: relative; height: 350px; width: 100%;">
-                                    <canvas id="analyticsGraph"
-                                        data-earnings='<%- JSON.stringify(hostStats.earningsByMonth) %>'
-                                        data-bookings='<%- JSON.stringify(hostStats.bookingsByMonth) %>'></canvas>
-                                </div>
-                            </div>
-
-                            <!-- Reservations Table -->
-                            <div id="client-bookings" class="card border-0 shadow-sm rounded-4 mb-4 scroll-mt">
-                                <div class="card-header bg-white border-0 pt-4 px-4">
-                                    <h5 class="fw-bold mb-0">Reservations (Received)</h5>
-                                </div>
-                                <div class="card-body px-0">
-                                    <div class="table-responsive">
-                                        <table class="table table-hover align-middle mb-0">
-                                            <thead class="bg-light">
-                                                <tr>
-                                                    <th class="ps-4">Guest</th>
-                                                    <th>Property</th>
-                                                    <th>Check-In</th>
-                                                    <th>Check-Out</th>
-                                                    <th>Status</th>
-                                                    <th class="text-end pe-4">Payout</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <% if(hostBookings && hostBookings.length> 0) { %>
-                                                    <% for(let activeBooking of hostBookings.reverse()) { %>
-                                                        <tr>
-                                                            <td class="ps-4">
-                                                                <div class="d-flex align-items-center">
-                                                                    <div class="bg-secondary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-2"
-                                                                        style="width:35px;height:35px;font-weight:bold;color:#777;">
-                                                                        <%= activeBooking.user ?
-                                                                            activeBooking.user.username[0].toUpperCase()
-                                                                            : '?' %>
-                                                                    </div>
-                                                                    <span>
-                                                                        <%= activeBooking.user ?
-                                                                            activeBooking.user.username : 'Unknown' %>
-                                                                    </span>
-                                                                </div>
-                                                            </td>
-                                                            <td>
-                                                                <% const bListing=myListings.find(l=>
-                                                                    l._id.equals(activeBooking.listing)); %>
-                                                                    <span class="text-truncate d-inline-block"
-                                                                        style="max-width: 150px;">
-                                                                        <%= bListing ? bListing.title
-                                                                            : 'Deleted Listing' %>
-                                                                    </span>
-                                                            </td>
-                                                            <td>
-                                                                <%= new Date(activeBooking.checkIn).toLocaleDateString()
-                                                                    %>
-                                                            </td>
-                                                            <td>
-                                                                <%= new
-                                                                    Date(activeBooking.checkOut).toLocaleDateString() %>
-                                                            </td>
-                                                            <td><span
-                                                                    class="badge bg-success bg-opacity-10 text-success">
-                                                                    <%= activeBooking.status %>
-                                                                </span></td>
-                                                            <td class="text-end pe-4 fw-bold">&#8377;<%=
-                                                                    activeBooking.totalPrice.toLocaleString("en-IN") %>
-                                                            </td>
-                                                        </tr>
-                                                        <% } %>
-                                                            <% } else { %>
-                                                                <tr>
-                                                                    <td colspan="6" class="text-center py-4 text-muted">
-                                                                        No reservations received yet.</td>
-                                                                </tr>
-                                                                <% } %>
-                                            </tbody>
-                                        </table>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Reviews Section -->
-                            <div id="host-reviews" class="card border-0 shadow-sm rounded-4 mb-4 scroll-mt">
-                                <div class="card-header bg-white border-0 pt-4 px-4">
-                                    <h5 class="fw-bold mb-0">Recent Reviews</h5>
-                                </div>
-                                <div class="card-body p-4">
-                                    <% let allHostReviews=[]; myListings.forEach(l=> {
-                                        if(l.reviews && l.reviews.length > 0) {
-                                        l.reviews.forEach(r => {
-                                        // We need author? populated? In 'renderDashboard', we populated 'reviews'.
-                                        // But reviews usually ref 'author'. We did NOT populate 'reviews.author'.
-                                        // So author will be an ID.
-                                        allHostReviews.push({ ...r.toObject(), listingTitle: l.title });
-                                        });
-                                        }
-                                        });
-                                        // We can't show Author Name if not populated. We'll show Rating and Comment.
-                                        %>
-                                        <% if(allHostReviews.length> 0) { %>
-                                            <div class="row">
-                                                <% for(let r of allHostReviews) { %>
-                                                    <div class="col-md-6 mb-3">
-                                                        <div class="border rounded-3 p-3 h-100">
-                                                            <div class="d-flex justify-content-between mb-2">
-                                                                <small class="text-muted fw-bold">
-                                                                    <%= r.listingTitle %>
-                                                                </small>
-                                                                <div class="text-warning small">
-                                                                    <% for(let i=0; i<r.rating; i++) { %><i
-                                                                            class="fa-solid fa-star"></i>
-                                                                        <% } %>
-                                                                </div>
-                                                            </div>
-                                                            <p class="mb-0 small text-dark">
-                                                                <%= r.comment %>
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                    <% } %>
-                                            </div>
-                                            <% } else { %>
-                                                <p class="text-muted text-center py-3">No reviews received yet.</p>
-                                                <% } %>
+                            <!-- Performance Chart -->
+                            <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+                                <h6 class="fw-bold mb-4">Performance Overview (<%= new Date().getFullYear() %>)</h6>
+                                <div style="height: 300px;">
+                                    <canvas id="hostChart" 
+                                            data-earnings='<%- JSON.stringify(hostStats.earningsByMonth) %>' 
+                                            data-bookings='<%- JSON.stringify(hostStats.bookingsByMonth) %>'></canvas>
                                 </div>
                             </div>
 
-                            <style>
-                                .card-hover {
-                                    transition: transform 0.2s;
-                                    cursor: pointer;
-                                }
-
-                                .card-hover:hover {
-                                    transform: translateY(-5px);
-                                }
-
-                                .scroll-mt {
-                                    scroll-margin-top: 100px;
-                                }
-                            </style>
-
-                            <% } else { %>
-                                <div class="alert alert-info">Analytics data unavailable.</div>
-                                <% } %>
+                            <!-- Reservations Table -->
+                            <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
+                                <div class="card-header bg-white border-0 py-3 px-4 d-flex justify-content-between align-items-center">
+                                    <h6 class="fw-bold mb-0">Incoming Reservations</h6>
+                                    <span class="badge bg-light text-dark border fw-semibold">View all</span>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0" style="font-size:0.9rem;">
+                                        <thead class="bg-light">
+                                            <tr>
+                                                <th class="border-0 ps-4">Guest</th>
+                                                <th class="border-0">Property</th>
+                                                <th class="border-0">Check-in</th>
+                                                <th class="border-0">Check-out</th>
+                                                <th class="border-0">Payout</th>
+                                                <th class="border-0 pe-4">Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <% if(hostBookings && hostBookings.length > 0) { %>
+                                                <% for(let hb of hostBookings.reverse()) { %>
+                                                <% const hostListing = myListings.find(l => l._id.equals(hb.listing)); %>
+                                                <tr>
+                                                    <td class="ps-4">
+                                                        <div class="d-flex align-items-center gap-2">
+                                                            <div class="rounded-circle bg-dark text-white d-flex align-items-center justify-content-center fw-bold" style="width:30px;height:30px;font-size:0.75rem;">
+                                                                <%= hb.user ? hb.user.username[0].toUpperCase() : '?' %>
+                                                            </div>
+                                                            <span class="fw-semibold"><%= hb.user ? hb.user.username : 'Guest' %></span>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <span class="text-truncate d-block" style="max-width: 140px;" title="<%= hostListing ? hostListing.title : '' %>">
+                                                            <%= hostListing ? hostListing.title : 'Deleted' %>
+                                                        </span>
+                                                    </td>
+                                                    <td><%= new Date(hb.checkIn).toLocaleDateString('en-IN', {day:'numeric', month:'short'}) %></td>
+                                                    <td><%= new Date(hb.checkOut).toLocaleDateString('en-IN', {day:'numeric', month:'short'}) %></td>
+                                                    <td class="fw-bold">₹<%= hb.totalPrice.toLocaleString("en-IN") %></td>
+                                                    <td class="pe-4">
+                                                        <span class="badge rounded-pill px-3 py-1 <%= hb.status === 'Confirmed' ? 'bg-success' : 'bg-warning' %> bg-opacity-10 text-<%= hb.status === 'Confirmed' ? 'success' : 'warning' %>">
+                                                            <%= hb.status %>
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                                <% } %>
+                                            <% } else { %>
+                                                <tr>
+                                                    <td colspan="6" class="text-center py-5 text-muted">
+                                                        <i class="fa-solid fa-calendar-day fa-2x mb-2 opacity-25"></i><br>
+                                                        No reservations yet
+                                                    </td>
+                                                </tr>
+                                            <% } %>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        <% } else { %>
+                            <div class="alert alert-info rounded-4 border-0">Host analytics are only available for properties you own.</div>
+                        <% } %>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Edit Profile Modal -->
-    <div class="modal fade" id="editProfileModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content rounded-4 shadow border-0">
-                <div class="modal-header border-bottom-0 pb-0">
-                    <h5 class="modal-title fw-bold">Edit Profile</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body p-4">
-                    <form action="/profile?_method=PUT" method="POST" enctype="multipart/form-data">
-                        <div class="mb-4 text-center">
-                            <div class="mx-auto mb-3 position-relative" style="width: 100px; height: 100px;">
-                                <img src="<%= (user.image && user.image.url) ? user.image.url : 'https://images.unsplash.com/photo-1511367461989-f85a21fda167?q=80&w=2831&auto=format&fit=crop' %>"
-                                    class="rounded-circle w-100 h-100 border object-fit-cover shadow-sm">
-                                <label
-                                    class="position-absolute bottom-0 end-0 bg-white rounded-circle shadow-sm p-2 border"
-                                    style="cursor: pointer; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;">
-                                    <i class="fa-solid fa-camera text-secondary small"></i>
-                                    <input type="file" name="image" class="d-none">
-                                </label>
-                            </div>
-                            <small class="text-muted">Click icon to change</small>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold small text-muted">Bio</label>
-                            <textarea class="form-control rounded-4 bg-light border-0" name="bio" rows="3"
-                                placeholder="Tell us about yourself..."><%= user.bio %></textarea>
-                        </div>
-                        <button class="btn btn-danger w-100 rounded-pill fw-bold py-2 mt-2"
-                            style="background-color: #FF385C; border: none;">Save Changes</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- Edit Profile Modal (moved down for clean tab section) -->
 
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script>
-        <% if (typeof hostStats !== 'undefined') { %>
-            document.addEventListener('DOMContentLoaded', function () {
-                const ctx = document.getElementById('analyticsGraph');
+        document.addEventListener('DOMContentLoaded', function () {
+            const chartEl = document.getElementById('hostChart');
+            if (!chartEl) return;
 
-                if (ctx) {
-                    // Read data from attribute to avoid EJS syntax issues in JS
-                    const rawEarnings = ctx.getAttribute('data-earnings');
-                    const rawBookings = ctx.getAttribute('data-bookings');
+            const earnings = JSON.parse(chartEl.dataset.earnings || '[]');
+            const bookings = JSON.parse(chartEl.dataset.bookings || '[]');
 
-                    const earningsData = JSON.parse(rawEarnings || '[]');
-                    const bookingsData = JSON.parse(rawBookings || '[]');
-
-                    const myChart = new Chart(ctx, {
-                        type: 'bar',
-                        data: {
-                            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-                            datasets: [
-                                {
-                                    label: 'Earnings (₹)',
-                                    data: earningsData,
-                                    backgroundColor: 'rgba(255, 56, 92, 0.8)',
-                                    borderRadius: 4,
-                                    order: 2,
-                                    yAxisID: 'y'
-                                },
-                                {
-                                    label: 'Bookings',
-                                    data: bookingsData,
-                                    type: 'line',
-                                    borderColor: '#008489',
-                                    backgroundColor: 'rgba(0, 132, 137, 0.1)',
-                                    borderWidth: 2,
-                                    pointBackgroundColor: '#fff',
-                                    pointBorderColor: '#008489',
-                                    pointRadius: 4,
-                                    tension: 0.4,
-                                    fill: true,
-                                    order: 1,
-                                    yAxisID: 'y1'
-                                }
-                            ]
+            new Chart(chartEl, {
+                type: 'bar',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                    datasets: [
+                        {
+                            label: 'Earnings (₹)',
+                            data: earnings,
+                            backgroundColor: 'rgba(255, 56, 92, 0.8)',
+                            borderRadius: 6,
+                            order: 2,
+                            yAxisID: 'y'
                         },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            interaction: {
-                                mode: 'index',
-                                intersect: false,
-                            },
-                            plugins: {
-                                legend: {
-                                    display: true,
-                                    position: 'top',
-                                    labels: {
-                                        usePointStyle: true,
-                                        boxWidth: 8
-                                    }
-                                },
-                                tooltip: {
-                                    padding: 10,
-                                    cornerRadius: 8,
-                                    backgroundColor: 'rgba(0,0,0,0.8)'
-                                }
-                            },
-                            scales: {
-                                y: {
-                                    type: 'linear',
-                                    display: true,
-                                    position: 'left',
-                                    beginAtZero: true,
-                                    grid: { display: true, borderDash: [5, 5] },
-                                    title: { display: true, text: 'Earnings (₹)' }
-                                },
-                                y1: {
-                                    type: 'linear',
-                                    display: true,
-                                    position: 'right',
-                                    beginAtZero: true,
-                                    grid: { display: false },
-                                    title: { display: true, text: 'Bookings' }
-                                },
-                                x: {
-                                    grid: { display: false }
-                                }
-                            }
+                        {
+                            label: 'Bookings',
+                            data: bookings,
+                            type: 'line',
+                            borderColor: '#008489',
+                            borderWidth: 3,
+                            pointRadius: 4,
+                            pointBackgroundColor: '#fff',
+                            tension: 0.4,
+                            order: 1,
+                            yAxisID: 'y1'
                         }
-                    });
-
-                    // Resize chart when Analytics tab is shown
-                    const tabEl = document.querySelector('button[data-bs-target="#analytics"]');
-                    if (tabEl) {
-                        tabEl.addEventListener('shown.bs.tab', event => {
-                            console.log("Analytics tab shown, resizing chart...");
-                            myChart.resize();
-                        });
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { position: 'left', beginAtZero: true, grid: { borderDash: [5, 5] }, ticks: { font: { size: 10 } } },
+                        y1: { position: 'right', beginAtZero: true, grid: { display: false }, ticks: { font: { size: 10 } } },
+                        x: { grid: { display: false }, ticks: { font: { size: 10 } } }
                     }
-                } else {
-                    console.error("Canvas element 'earningsChart' not found!");
                 }
             });
-        <% } %>
+        });
     </script>
 
     <style>

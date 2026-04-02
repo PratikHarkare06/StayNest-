@@ -1,115 +1,417 @@
 <% layout("/layouts/boilerplate") %>
 
-<div class="container mt-4 mb-5 pb-5">
-    <div class="row align-items-center mb-3">
-        <div class="col-12 d-flex justify-content-between align-items-center">
-            <a href="/messages" class="btn btn-outline-dark rounded-circle me-3 border-0"><i class="fa-solid fa-chevron-left"></i></a>
-            <div class="d-flex align-items-center flex-grow-1">
-                <img src="<%= partner.image.url %>" class="rounded-circle object-fit-cover me-3 shadow-sm" style="width: 48px; height: 48px;">
-                <h5 class="fw-bold mb-0"><%= partner.username %></h5>
-            </div>
-            <a href="/listings" class="text-dark small fw-bold text-decoration-none bg-light px-3 py-2 rounded-pill shadow-sm">View Listings</a>
-        </div>
+<style>
+  /* ── Chat Page ─────────────────────────────── */
+  .chat-wrapper {
+    max-width: 780px;
+    margin: 0 auto;
+    height: calc(100vh - 140px);
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Header */
+  .chat-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid #ebebeb;
+    background: white;
+    border-radius: 20px 20px 0 0;
+    flex-shrink: 0;
+  }
+
+  .chat-avatar-wrap { position: relative; flex-shrink: 0; }
+
+  .chat-avatar {
+    width: 46px; height: 46px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #ebebeb;
+  }
+
+  .online-dot {
+    position: absolute;
+    bottom: 1px; right: 1px;
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: #22c55e;
+    border: 2px solid white;
+    display: none;
+  }
+
+  .chat-header-name { font-weight: 700; font-size: 1rem; line-height: 1.2; }
+  .chat-header-status { font-size: 0.72rem; color: #717171; }
+
+  /* Messages area */
+  #chat-box {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem 1.25rem;
+    background: #f7f7f7;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    scroll-behavior: smooth;
+  }
+
+  /* Bubble */
+  .msg-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.5rem;
+    animation: bubbleIn 0.25s cubic-bezier(0.2,0,0,1);
+  }
+  .msg-row.me { flex-direction: row-reverse; }
+
+  @keyframes bubbleIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .msg-bubble {
+    max-width: 68%;
+    padding: 0.6rem 1rem;
+    border-radius: 18px;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+
+  .msg-bubble.them {
+    background: #ffffff;
+    border: 1px solid #e5e5e5;
+    border-bottom-left-radius: 4px;
+    color: #222;
+  }
+
+  .msg-bubble.me {
+    background: #222222;
+    color: white;
+    border-bottom-right-radius: 4px;
+  }
+
+  .msg-time {
+    font-size: 0.62rem;
+    color: #aaa;
+    white-space: nowrap;
+    margin-bottom: 2px;
+  }
+
+  /* Read receipt */
+  .read-tick {
+    font-size: 0.65rem;
+    color: #22c55e;
+    margin-top: 2px;
+    text-align: right;
+    display: none;
+  }
+
+  /* Typing indicator */
+  #typing-indicator {
+    display: none;
+    padding: 0.4rem 1rem;
+    align-items: center;
+    gap: 0.4rem;
+    color: #717171;
+    font-size: 0.8rem;
+    flex-shrink: 0;
+    background: #f7f7f7;
+    padding-left: 1.25rem;
+  }
+
+  .typing-dots span {
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #aaa;
+    animation: dotBounce 1.2s infinite;
+  }
+  .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes dotBounce {
+    0%, 80%, 100% { transform: translateY(0); }
+    40%           { transform: translateY(-6px); }
+  }
+
+  /* Input area */
+  .chat-input-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem 1.25rem;
+    border-top: 1px solid #ebebeb;
+    background: white;
+    border-radius: 0 0 20px 20px;
+    flex-shrink: 0;
+  }
+
+  #chat-input {
+    flex: 1;
+    border: 1px solid #ddd;
+    border-radius: 999px;
+    padding: 0.6rem 1.2rem;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.2s;
+    font-family: inherit;
+    resize: none;
+  }
+  #chat-input:focus { border-color: #222; }
+
+  #send-btn {
+    width: 42px; height: 42px;
+    min-width: 42px;
+    border-radius: 50%;
+    background: #ff385c;
+    border: none;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.15s, background 0.2s;
+    flex-shrink: 0;
+  }
+  #send-btn:hover { background: #d50027; transform: scale(1.08); }
+  #send-btn:active { transform: scale(0.95); }
+
+  /* Date separator */
+  .date-sep {
+    text-align: center;
+    margin: 0.75rem 0;
+    font-size: 0.72rem;
+    color: #aaa;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .date-sep::before, .date-sep::after {
+    content: ''; flex: 1; height: 1px; background: #e5e5e5;
+  }
+</style>
+
+<div class="container-fluid px-md-4 mt-3 mb-5 pb-4">
+  <div class="chat-wrapper shadow rounded-4 bg-white overflow-hidden">
+
+    <!-- Header -->
+    <div class="chat-header">
+      <a href="/messages" class="btn btn-light rounded-circle p-2 me-1 border-0"
+         style="width:38px;height:38px;display:flex;align-items:center;justify-content:center;">
+        <i class="fa-solid fa-chevron-left"></i>
+      </a>
+      <div class="chat-avatar-wrap">
+        <img src="<%= partner.image.url %>" class="chat-avatar" alt="<%= partner.username %>">
+        <span class="online-dot" id="partner-online-dot" data-partner-id="<%= partner._id %>"></span>
+      </div>
+      <div class="flex-grow-1">
+        <div class="chat-header-name"><%= partner.username %></div>
+        <div class="chat-header-status" id="partner-status">Tap to view profile</div>
+      </div>
+      <a href="/listings" class="btn btn-outline-dark btn-sm rounded-pill px-3 fw-semibold">
+        <i class="fa-solid fa-compass me-1"></i> Explore
+      </a>
     </div>
 
-    <div class="card border-0 shadow-lg rounded-4 overflow-hidden mx-auto" style="height: 65vh; max-width: 900px; display: flex; flex-direction: column;">
-        
-        <!-- Chat Area -->
-        <div id="chat-box" class="card-body bg-light p-4 overflow-auto flex-grow-1" style="display: flex; flex-direction: column;">
-            <% if (messages.length === 0) { %>
-                <div class="text-center my-auto">
-                    <p class="text-muted fw-bold">This is the start of your conversation with <%= partner.username %></p>
-                </div>
-            <% } else { %>
-                <% for (let msg of messages) { %>
-                    <% const isMe = msg.sender.equals(currUser._id); %>
-                    <div class="message-wrapper d-flex flex-column align-items-<%= isMe ? 'end' : 'start' %> mb-3 animate__animated animate__fadeInUp animate__faster">
-                        <div class="message-bubble py-2 px-3 rounded-4 shadow-sm <%= isMe ? 'bg-dark text-white' : 'bg-white border text-dark' %>" style="max-width: 75%; overflow-wrap: break-word;">
-                            <%= msg.content %>
-                        </div>
-                        <small class="text-muted mt-1" style="font-size: 0.65rem;"><%= new Date(msg.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) %></small>
-                    </div>
-                <% } %>
-            <% } %>
+    <!-- Messages -->
+    <div id="chat-box">
+      <% if (messages.length === 0) { %>
+        <div class="text-center my-auto py-5" id="empty-state">
+          <i class="fa-regular fa-comments fa-3x text-muted opacity-25 mb-2"></i>
+          <p class="text-muted fw-semibold mt-2">Start chatting with <%= partner.username %></p>
         </div>
-
-        <!-- Input Box -->
-        <div class="card-footer bg-white border-top p-3 d-flex align-items-center gap-2 m-2 rounded-pill shadow-sm">
-            <input type="text" id="chat-input" class="form-control border-0 bg-transparent shadow-none" placeholder="Type a message..." style="box-shadow: none !important; outline: none !important;">
-            <button id="send-btn" class="btn btn-dark rounded-circle d-flex align-items-center justify-content-center p-0 shadow" style="width: 40px; height: 40px; min-width: 40px;">
-                <i class="fa-solid fa-paper-plane text-white fs-6"></i>
-            </button>
-        </div>
+      <% } else { %>
+        <% let lastDate = null; %>
+        <% for (let msg of messages) { %>
+          <% const isMe = msg.sender.equals(currUser._id); %>
+          <% const msgDate = new Date(msg.createdAt).toLocaleDateString('en-US', {weekday:'long', month:'short', day:'numeric'}); %>
+          <% if (msgDate !== lastDate) { lastDate = msgDate; %>
+            <div class="date-sep"><%= msgDate %></div>
+          <% } %>
+          <div class="msg-row <%= isMe ? 'me' : 'them' %>">
+            <div class="msg-bubble <%= isMe ? 'me' : 'them' %>"><%= msg.content %></div>
+            <div class="msg-time"><%= new Date(msg.createdAt).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) %></div>
+          </div>
+          <% if (isMe && msg.isRead) { %>
+            <div class="read-tick" style="display:block;">✓✓ Seen</div>
+          <% } %>
+        <% } %>
+      <% } %>
     </div>
+
+    <!-- Typing indicator -->
+    <div id="typing-indicator">
+      <div class="typing-dots">
+        <span></span><span></span><span></span>
+      </div>
+      <span><%= partner.username %> is typing…</span>
+    </div>
+
+    <!-- Input -->
+    <div class="chat-input-bar">
+      <input type="text" id="chat-input" placeholder="Message <%= partner.username %>…" autocomplete="off">
+      <button id="send-btn" aria-label="Send">
+        <i class="fa-solid fa-paper-plane"></i>
+      </button>
+    </div>
+
+  </div>
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
-    document.addEventListener("DOMContentLoaded", () => {
-        const socket = io(); // Connects to the host automatically
-        
-        const currUserId = "<%= currUser._id %>";
-        const partnerId = "<%= partner._id %>";
-        
-        socket.emit("register_user", currUserId); // Bind User ID to room
-        
-        const chatBox = document.getElementById("chat-box");
-        const chatInput = document.getElementById("chat-input");
-        const sendBtn = document.getElementById("send-btn");
-        
-        // Auto-scroll to bottom of chat
-        function scrollToBottom() {
-            chatBox.scrollTop = chatBox.scrollHeight;
+document.addEventListener("DOMContentLoaded", () => {
+  const socket = io();
+
+  const ME      = "<%= currUser._id %>";
+  const PARTNER = "<%= partner._id %>";
+
+  // ── Register presence ───────────────────────────────────────────────────────
+  socket.emit("register_user", ME);
+
+  // ── Mark partner's messages as read immediately ─────────────────────────────
+  socket.emit("mark_read", { senderId: PARTNER, receiverId: ME });
+
+  // ── Elements ────────────────────────────────────────────────────────────────
+  const chatBox        = document.getElementById("chat-box");
+  const chatInput      = document.getElementById("chat-input");
+  const sendBtn        = document.getElementById("send-btn");
+  const typingEl       = document.getElementById("typing-indicator");
+  const onlineDot      = document.getElementById("partner-online-dot");
+  const partnerStatus  = document.getElementById("partner-status");
+
+  // ── Scroll to bottom ────────────────────────────────────────────────────────
+  function scrollToBottom(smooth = true) {
+    chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: smooth ? "smooth" : "instant" });
+  }
+  scrollToBottom(false);
+
+  // ── Append a message bubble ─────────────────────────────────────────────────
+  function appendBubble(content, isMe, timeStr = "Now") {
+    // Remove empty state
+    const empty = document.getElementById("empty-state");
+    if (empty) empty.remove();
+
+    const row = document.createElement("div");
+    row.className = `msg-row ${isMe ? "me" : "them"}`;
+    row.innerHTML = `
+      <div class="msg-bubble ${isMe ? "me" : "them"}">${escapeHtml(content)}</div>
+      <div class="msg-time">${timeStr}</div>
+    `;
+    chatBox.appendChild(row);
+    scrollToBottom();
+  }
+
+  function escapeHtml(str) {
+    return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  }
+
+  // ── Send message ────────────────────────────────────────────────────────────
+  function sendMessage() {
+    const txt = chatInput.value.trim();
+    if (!txt) return;
+    socket.emit("send_message", { senderId: ME, receiverId: PARTNER, content: txt });
+    chatInput.value = "";
+    chatInput.focus();
+    stopTyping();
+  }
+
+  sendBtn.addEventListener("click", sendMessage);
+  chatInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  });
+
+  // ── Receive messages ────────────────────────────────────────────────────────
+  socket.on("new_message", (msg) => {
+    const inThisChat =
+      (msg.sender._id === PARTNER && msg.receiver === ME) ||
+      (msg.sender._id === ME      && msg.receiver === PARTNER);
+
+    if (!inThisChat) return;
+
+    const isMe = msg.sender._id === ME;
+    const time  = new Date(msg.createdAt || Date.now()).toLocaleTimeString([], { hour:"2-digit", minute:"2-digit" });
+    appendBubble(msg.content, isMe, time);
+
+    // If I received this, mark it read immediately
+    if (!isMe) {
+      socket.emit("mark_read", { senderId: PARTNER, receiverId: ME });
+
+      // Update navbar unread badge
+      const badge = document.getElementById("msg-unread-badge");
+      if (badge) badge.style.display = "none";
+    }
+  });
+
+  // ── Typing indicators ───────────────────────────────────────────────────────
+  let typingTimer = null;
+  let isTyping = false;
+
+  function startTyping() {
+    if (!isTyping) {
+      isTyping = true;
+      socket.emit("typing_start", { senderId: ME, receiverId: PARTNER });
+    }
+    clearTimeout(typingTimer);
+    typingTimer = setTimeout(stopTyping, 2000);
+  }
+
+  function stopTyping() {
+    if (isTyping) {
+      isTyping = false;
+      socket.emit("typing_stop", { senderId: ME, receiverId: PARTNER });
+    }
+    clearTimeout(typingTimer);
+  }
+
+  chatInput.addEventListener("input", startTyping);
+
+  socket.on("typing_start", ({ senderId }) => {
+    if (senderId === PARTNER) typingEl.style.display = "flex";
+    scrollToBottom();
+  });
+
+  socket.on("typing_stop", ({ senderId }) => {
+    if (senderId === PARTNER) typingEl.style.display = "none";
+  });
+
+  // ── Read receipts ───────────────────────────────────────────────────────────
+  socket.on("messages_read", ({ by }) => {
+    if (by === PARTNER) {
+      // Show "Seen" on the last sent bubble
+      const rows = chatBox.querySelectorAll(".msg-row.me");
+      const lastRow = rows[rows.length - 1];
+      if (lastRow) {
+        let tick = lastRow.nextElementSibling;
+        if (!tick || !tick.classList.contains("read-tick")) {
+          tick = document.createElement("div");
+          tick.className = "read-tick";
+          tick.textContent = "✓✓ Seen";
+          lastRow.after(tick);
         }
-        scrollToBottom();
+        tick.style.display = "block";
+      }
+    }
+  });
 
-        // Send Message
-        function sendMessage() {
-            const txt = chatInput.value.trim();
-            if(!txt) return;
+  // ── Online presence ─────────────────────────────────────────────────────────
+  socket.on("user_online", ({ userId }) => {
+    if (userId === PARTNER) {
+      onlineDot.style.display = "block";
+      partnerStatus.textContent = "Active now";
+      partnerStatus.style.color = "#22c55e";
+    }
+  });
 
-            const payload = {
-                senderId: currUserId,
-                receiverId: partnerId,
-                content: txt
-            };
-
-            socket.emit("send_message", payload);
-            chatInput.value = "";
-            chatInput.focus();
-        }
-
-        sendBtn.addEventListener("click", sendMessage);
-        chatInput.addEventListener("keypress", (e) => {
-            if(e.key === "Enter") sendMessage();
-        });
-
-        // Listen for incoming messages
-        socket.on("new_message", (msg) => {
-            // Only render if it belongs to this active conversation thread
-            if( (msg.sender._id === partnerId && msg.receiver === currUserId) || 
-                (msg.sender._id === currUserId && msg.receiver === partnerId) ) {
-                
-                const isMe = (msg.sender._id === currUserId);
-                
-                const msgWrapper = document.createElement("div");
-                msgWrapper.className = `message-wrapper d-flex flex-column align-items-${isMe ? 'end' : 'start'} mb-3`;
-                
-                msgWrapper.innerHTML = `
-                    <div class="message-bubble py-2 px-3 rounded-4 shadow-sm ${isMe ? 'bg-dark text-white' : 'bg-white border text-dark'}" style="max-width: 75%; overflow-wrap: break-word;">
-                        ${msg.content}
-                    </div>
-                    <small class="text-muted mt-1" style="font-size: 0.65rem;">Now</small>
-                `;
-                
-                // If it was the empty state text, remove it
-                if(chatBox.querySelector('.text-muted.fw-bold')) {
-                    chatBox.innerHTML = '';
-                }
-                
-                chatBox.appendChild(msgWrapper);
-                scrollToBottom();
-            }
-        });
-    });
+  socket.on("user_offline", ({ userId }) => {
+    if (userId === PARTNER) {
+      onlineDot.style.display = "none";
+      partnerStatus.textContent = "Offline";
+      partnerStatus.style.color = "#aaa";
+    }
+  });
+});
 </script>

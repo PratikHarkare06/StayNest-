@@ -6,12 +6,12 @@ if (!process.env.MAP_TOKEN) {
 }
 
 module.exports.index = async (req, res) => {
-    const { q, category, minPrice, maxPrice, sort, checkIn, checkOut, adults, children } = req.query;
+    const { q, category, minPrice, maxPrice, sort, checkIn, checkOut, adults, children, amenities, status } = req.query;
     const page = parseInt(req.query.page) || 1;
     const limit = 9;
     const skip = (page - 1) * limit;
 
-    let query = {};
+    let query = { status: "Active" }; // Default: Only active listings
 
     // 1. Algorithmic Availability Filter (Feature 3)
     if (checkIn && checkOut) {
@@ -36,7 +36,7 @@ module.exports.index = async (req, res) => {
         query.maxGuests = { $gte: totalGuests };
     }
 
-    if (category) {
+    if (category && category !== "All") {
         query.category = category;
     }
 
@@ -54,6 +54,12 @@ module.exports.index = async (req, res) => {
         if (maxPrice) query.price.$lte = parseInt(maxPrice);
     }
 
+    // 3. Amenities Filter (Parametric Search)
+    if (amenities) {
+        const amenitiesArray = Array.isArray(amenities) ? amenities : [amenities];
+        query.amenities = { $all: amenitiesArray };
+    }
+
     let sortOption = { _id: -1 }; // Default: Newest
     if (sort === 'price_low') sortOption = { price: 1 };
     else if (sort === 'price_high') sortOption = { price: -1 };
@@ -61,11 +67,11 @@ module.exports.index = async (req, res) => {
     const totalListings = await Listing.countDocuments(query);
     const allListings = await Listing.find(query).sort(sortOption).skip(skip).limit(limit);
     // Fetch all matching data for map (lighter query)
-    const allListingsMap = await Listing.find(query).select('title geometry price location');
+    const allListingsMap = await Listing.find(query).select('title geometry price location image');
     const totalPages = Math.ceil(totalListings / limit);
 
-    if (allListings.length === 0 && page === 1) {
-        if (category || q || minPrice || maxPrice) {
+    if (allListings.length === 0 && page === 1 && !req.query.mode) {
+        if (category || q || minPrice || maxPrice || amenities) {
             req.flash("error", "No listings found matching your criteria.");
             return res.redirect("/listings");
         }
@@ -78,14 +84,29 @@ module.exports.index = async (req, res) => {
     if (minPrice) queryString += `&minPrice=${minPrice}`;
     if (maxPrice) queryString += `&maxPrice=${maxPrice}`;
     if (sort) queryString += `&sort=${sort}`;
-
-    // Infinite Scroll / Layout-less response
-    if (req.query.mode === 'infinite') {
-        return res.render("listings/list-partial.ejs", { allListings });
+    if (amenities) {
+        const arr = Array.isArray(amenities) ? amenities : [amenities];
+        arr.forEach(a => queryString += `&amenities=${a}`);
     }
 
-    if (page > totalPages && totalPages > 0) {
-        return res.redirect(`/listings${queryString}&page=${totalPages}`);
+    // JSON API response for infinite scroll or Map View Refresh
+    if (req.query.mode === 'api') {
+        return res.json({
+            listings: allListings.map(l => ({
+                _id: l._id,
+                title: l.title,
+                location: l.location,
+                country: l.country,
+                price: l.price,
+                category: l.category,
+                image: l.image,
+                geometry: l.geometry,
+            })),
+            currentPage: page,
+            totalPages,
+            hasMore: page < totalPages,
+            allListingsMap: allListingsMap, // Updated map markers too
+        });
     }
 
     res.render("listings/index.ejs", {
@@ -95,9 +116,40 @@ module.exports.index = async (req, res) => {
         totalPages,
         category,
         q,
-        queryString, // Pass full query string for pagination
+        queryString,
         mapToken: process.env.MAP_TOKEN
     });
+};
+
+module.exports.getByBounds = async (req, res) => {
+    const { sw, ne, category } = req.query;
+    if (!sw || !ne) return res.status(400).json({ error: "Bounds required" });
+
+    const swCoords = sw.split(',').map(Number);
+    const neCoords = ne.split(',').map(Number);
+
+    let query = {
+        status: "Active",
+        geometry: {
+            $geoWithin: {
+                $box: [
+                    [swCoords[1], swCoords[0]], // [lon, lat]
+                    [neCoords[1], neCoords[0]]
+                ]
+            }
+        }
+    };
+
+    if (category && category !== "All" && category !== "Trending") {
+        query.category = category;
+    }
+
+    try {
+        const listings = await Listing.find(query).select('title geometry price location image _id');
+        res.json(listings);
+    } catch (err) {
+        res.status(500).json({ error: "Map discovery failed" });
+    }
 };
 
 module.exports.searchDestinations = async (req, res) => {

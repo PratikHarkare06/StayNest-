@@ -1,0 +1,297 @@
+<%- layout("/layouts/boilerplate") %>
+
+<style>
+.confirm-page {
+  max-width: 900px;
+  margin: 2rem auto 5rem;
+}
+
+.confirm-left {
+  border-right: 1px solid #ebebeb;
+  padding-right: 3rem;
+}
+
+@media (max-width: 768px) {
+  .confirm-left {
+    border-right: none;
+    padding-right: 0;
+    border-bottom: 1px solid #ebebeb;
+    padding-bottom: 2rem;
+    margin-bottom: 2rem;
+  }
+}
+
+/* Price pill */
+.price-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.65rem 0;
+  font-size: 0.97rem;
+  color: #484848;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.price-row:last-child { border-bottom: none; }
+
+.price-row.total {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: #222;
+  border-top: 1px solid #222;
+  padding-top: 1rem;
+  margin-top: 0.5rem;
+  border-bottom: none;
+}
+
+/* Timeline */
+.trip-timeline {
+  display: flex;
+  gap: 0;
+  border: 1px solid #ebebeb;
+  border-radius: 16px;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+
+.trip-timeline-item {
+  flex: 1;
+  padding: 1rem 1.25rem;
+  background: white;
+}
+
+.trip-timeline-item:not(:last-child) {
+  border-right: 1px solid #ebebeb;
+}
+
+.trip-timeline-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #717171;
+  margin-bottom: 0.25rem;
+}
+
+.trip-timeline-value {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #222;
+}
+
+.trip-timeline-sub {
+  font-size: 0.78rem;
+  color: #717171;
+  margin-top: 1px;
+}
+
+/* Listing card */
+.confirm-listing-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid #ebebeb;
+  border-radius: 16px;
+  margin-bottom: 1.5rem;
+}
+
+.confirm-listing-img {
+  width: 90px;
+  height: 68px;
+  object-fit: cover;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+/* Policy chips */
+.policy-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: #f7f7f7;
+  border-radius: 8px;
+  padding: 0.5rem 0.85rem;
+  font-size: 0.82rem;
+  margin-bottom: 0.5rem;
+  margin-right: 0.4rem;
+  font-weight: 500;
+}
+
+/* Reserve button */
+.btn-reserve {
+  background: linear-gradient(to right, #FF385C, #E61E4D);
+  color: white;
+  border: none;
+  border-radius: 14px;
+  padding: 1rem 2rem;
+  width: 100%;
+  font-weight: 700;
+  font-size: 1.05rem;
+  transition: transform 0.15s, box-shadow 0.2s;
+  box-shadow: 0 4px 16px rgba(255, 56, 92, 0.3);
+}
+
+.btn-reserve:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(255, 56, 92, 0.4);
+  color: white;
+}
+
+.btn-reserve:active { transform: translateY(0); }
+</style>
+
+<div class="container confirm-page">
+  <!-- Back button -->
+  <a href="/listings/<%= listing._id %>" class="btn btn-light rounded-pill mb-4 fw-semibold px-4 border-0 shadow-sm">
+    <i class="fa-solid fa-arrow-left me-2"></i>Back to listing
+  </a>
+
+  <h2 class="fw-bold mb-4">Confirm your booking</h2>
+
+  <div class="row g-5">
+
+    <!-- ── Left: Trip details ─────────────────────────────────────── -->
+    <div class="col-md-7 confirm-left">
+
+      <!-- Listing Card -->
+      <div class="confirm-listing-card">
+        <img src="<%= listing.image.url %>" class="confirm-listing-img" alt="<%= listing.title %>">
+        <div class="flex-grow-1 overflow-hidden">
+          <div class="text-muted small mb-1">
+            <% if(listing.category) { %><span class="badge bg-light text-dark border me-1"><%= listing.category %></span><% } %>
+          </div>
+          <h6 class="fw-bold mb-0 text-truncate"><%= listing.title %></h6>
+          <p class="text-muted small mb-0"><i class="fa-solid fa-location-dot me-1"></i><%= listing.location %>, <%= listing.country %></p>
+          <div class="mt-1">
+            <i class="fa-solid fa-star text-dark" style="font-size:0.75rem;"></i>
+            <span class="small fw-semibold">
+              <% if(listing.reviews && listing.reviews.length > 0) {
+                const avg = (listing.reviews.reduce((s,r)=>s+r.rating,0)/listing.reviews.length).toFixed(1); %>
+                <%= avg %>
+              <% } else { %>New<% } %>
+            </span>
+          </div>
+        </div>
+        <div class="text-end flex-shrink-0">
+          <span class="fw-bold">&#8377;<%= listing.price.toLocaleString("en-IN") %></span>
+          <br><small class="text-muted">/ night</small>
+        </div>
+      </div>
+
+      <!-- Trip Timeline -->
+      <h5 class="fw-bold mb-3">Your trip</h5>
+      <div class="trip-timeline mb-4">
+        <div class="trip-timeline-item">
+          <div class="trip-timeline-label">Check-in</div>
+          <div class="trip-timeline-value">
+            <%= new Date(checkIn).toLocaleDateString('en-IN', {weekday:'short', day:'numeric', month:'short'}) %>
+          </div>
+          <div class="trip-timeline-sub">After 3:00 PM</div>
+        </div>
+        <div class="trip-timeline-item">
+          <div class="trip-timeline-label">Check-out</div>
+          <div class="trip-timeline-value">
+            <%= new Date(checkOut).toLocaleDateString('en-IN', {weekday:'short', day:'numeric', month:'short'}) %>
+          </div>
+          <div class="trip-timeline-sub">Before 11:00 AM</div>
+        </div>
+        <div class="trip-timeline-item">
+          <div class="trip-timeline-label">Guests</div>
+          <div class="trip-timeline-value"><%= guests %></div>
+          <div class="trip-timeline-sub"><%= adults %> adult<%= adults !== 1 ? 's' : '' %><% if(children > 0) { %>, <%= children %> child<%= children !== 1 ? 'ren' : '' %><% } %></div>
+        </div>
+      </div>
+
+      <!-- House Rules / Policies -->
+      <h5 class="fw-bold mb-3">Things to know</h5>
+      <div class="mb-4">
+        <div class="policy-chip"><i class="fa-solid fa-house text-muted"></i> House rules apply</div>
+        <div class="policy-chip"><i class="fa-solid fa-ban-smoking text-muted"></i> No smoking</div>
+        <div class="policy-chip"><i class="fa-solid fa-paw text-muted"></i> No pets</div>
+        <div class="policy-chip"><i class="fa-regular fa-clock text-muted"></i> 3:00 PM – 11:00 AM</div>
+        <div class="policy-chip"><i class="fa-solid fa-shield-halved text-success"></i> Safety features verified</div>
+      </div>
+
+      <!-- Cancellation policy note -->
+      <div class="alert alert-light border rounded-3 d-flex align-items-start gap-2 py-3">
+        <i class="fa-solid fa-circle-info text-muted mt-1 flex-shrink-0"></i>
+        <div class="small">
+          <strong>Free cancellation before check-in date.</strong> After check-in, this booking is non-refundable.
+          <a href="#" class="text-dark fw-semibold">Learn more</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Right: Price breakdown + Reserve ──────────────────────── -->
+    <div class="col-md-5">
+      <div class="sticky-top" style="top: 100px;">
+
+        <div class="bg-white border rounded-4 p-4 shadow-sm">
+          <h5 class="fw-bold mb-4">Price details</h5>
+
+          <div class="price-row">
+            <span>&#8377;<%= listing.price.toLocaleString("en-IN") %> &times; <%= nights %> night<%= nights !== 1 ? 's' : '' %></span>
+            <span>&#8377;<%= subtotal.toLocaleString("en-IN") %></span>
+          </div>
+          <div class="price-row">
+            <span class="d-flex align-items-center gap-1">
+              Cleaning fee
+              <i class="fa-solid fa-circle-info text-muted" style="font-size:0.7rem;" title="Covers costs of cleaning the property"></i>
+            </span>
+            <span>&#8377;<%= cleaningFee.toLocaleString("en-IN") %></span>
+          </div>
+          <div class="price-row">
+            <span class="d-flex align-items-center gap-1">
+              StayNest service fee
+              <i class="fa-solid fa-circle-info text-muted" style="font-size:0.7rem;" title="Helps keep the platform running safely"></i>
+            </span>
+            <span>&#8377;<%= serviceFee.toLocaleString("en-IN") %></span>
+          </div>
+          <div class="price-row">
+            <span>GST (18%)</span>
+            <span>&#8377;<%= taxes.toLocaleString("en-IN") %></span>
+          </div>
+
+          <div class="price-row total mt-2">
+            <span>Total (INR)</span>
+            <span>&#8377;<%= total.toLocaleString("en-IN") %></span>
+          </div>
+        </div>
+
+        <!-- Confirm Form -->
+        <form action="/listings/<%= listing._id %>/bookings" method="POST" class="mt-4">
+          <input type="hidden" name="booking[checkIn]"  value="<%= checkIn %>">
+          <input type="hidden" name="booking[checkOut]" value="<%= checkOut %>">
+          <input type="hidden" name="booking[adults]"   value="<%= adults %>">
+          <input type="hidden" name="booking[children]" value="<%= children %>">
+
+          <button type="submit" class="btn btn-reserve">
+            <i class="fa-solid fa-lock me-2"></i>Confirm reservation
+          </button>
+          <p class="text-center text-muted small mt-3">
+            <i class="fa-solid fa-shield-halved me-1"></i>
+            You won't be charged now — payment on check-in
+          </p>
+        </form>
+
+        <!-- Host info -->
+        <div class="d-flex align-items-center gap-3 mt-3 pt-3 border-top">
+          <% if(listing.owner.image && listing.owner.image.url) { %>
+            <img src="<%= listing.owner.image.url %>" class="rounded-circle border" style="width:40px;height:40px;object-fit:cover;" alt="host">
+          <% } else { %>
+            <div class="rounded-circle bg-dark text-white d-flex align-items-center justify-content-center fw-bold" style="width:40px;height:40px;font-size:1rem;">
+              <%= listing.owner.username[0].toUpperCase() %>
+            </div>
+          <% } %>
+          <div>
+            <div class="fw-semibold small">Hosted by <%= listing.owner.username %></div>
+            <div class="text-muted" style="font-size:0.75rem;"><i class="fa-solid fa-star text-warning me-1"></i> Superhost · Responds within an hour</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>

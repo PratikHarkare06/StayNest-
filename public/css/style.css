@@ -15,7 +15,7 @@
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.05);
   --shadow-md: 0 6px 16px rgba(0, 0, 0, 0.12);
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.15);
-  --font-main: 'Plus Jakarta Sans', "Roboto", sans-serif;
+  --font-main: 'Manrope', 'Circular', 'Airbnb Cereal App', -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', sans-serif;
   --transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
 }
 
@@ -492,57 +492,62 @@ footer {
 /* =========================================
    8. SKELETON LOADING & SHIMMER
    ========================================= */
+
+/* Shimmer keyframe */
+@keyframes shimmer {
+  0%   { background-position: -900px 0; }
+  100% { background-position:  900px 0; }
+}
+
+/* Applied to every shimmer element */
 .skeleton-shimmer {
-  background: #f6f7f8;
-  background-image: linear-gradient(to right, #f6f7f8 0%, #edeef1 20%, #f6f7f8 40%, #f6f7f8 100%);
-  background-repeat: no-repeat;
-  background-size: 800px 100%;
-  display: inline-block;
-  position: relative;
-  animation-duration: 1s;
-  animation-fill-mode: forwards;
-  animation-iteration-count: infinite;
-  animation-name: shimmerEffect;
-  animation-timing-function: linear;
-}
-
-@keyframes shimmerEffect {
-  0% {
-    background-position: -468px 0;
-  }
-  100% {
-    background-position: 468px 0;
-  }
-}
-
-.skeleton-card-img {
-  width: 100%;
-  aspect-ratio: 1/1;
+  display: block;
   border-radius: 12px;
+  background-color: #f0f0f0;
+  background-image: linear-gradient(
+    90deg,
+    #f0f0f0 0px,
+    #e8e8e8 40px,
+    #f0f0f0 80px
+  );
+  background-size: 900px 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
 }
 
-
+/* Skeleton card wrapper */
 .skeleton-card {
   height: 100%;
   margin-bottom: 2rem;
 }
 
+/* Photo area — matches .card-img-top aspect ratio */
 .skeleton-img {
   width: 100%;
-  aspect-ratio: 20/19;
+  aspect-ratio: 20 / 19;
   border-radius: var(--border-radius-lg);
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
 }
 
+/* Text lines */
 .skeleton-text {
-  height: 1rem;
-  border-radius: 4px;
+  height: 0.9rem;
+  border-radius: 6px;
   margin-top: 0.5rem;
-  width: 60%;
+  width: 65%;
 }
 
 .skeleton-text.short {
-  width: 30%;
+  width: 35%;
+}
+
+/* Lazy-load image fade-in */
+img.lazy-load {
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+img.lazy-load.loaded {
+  opacity: 1;
 }
 
 /* =========================================
@@ -554,53 +559,80 @@ footer {
 
 /* Navbar Mini Pill */
 /* =========================================
-   11. FLEXIBLE & MONTHS TABS
+   12. DISCOVERY & SEARCH POLISH
    ========================================= */
 
-/* Flexible Tab */
-.flex-duration-btn {
-  border: 1px solid #dee2e6;
-  color: #222;
-  transition: all 0.2s;
+/* Filter Bar Active State */
+.filter.active {
+  opacity: 1;
+  color: var(--dark);
+  border-bottom: 2px solid var(--dark);
 }
 
-.flex-duration-btn:hover {
-  border-color: #222;
+.filter.active i {
+  color: var(--primary);
+  transform: scale(1.1);
 }
 
-.flex-duration-btn.active {
-  border-color: #222;
-  border-width: 2px;
-  background-color: #f7f7f7;
-}
-
-.flex-month-card {
-  min-width: 120px;
-  height: 120px;
-  border: 1px solid #dee2e6;
-  border-radius: 16px;
+/* Category Scroll Buttons (Visual Only for now) */
+.filter-scroll-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid #ddd;
+  background: white;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
+  font-size: 0.7rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   cursor: pointer;
   transition: all 0.2s;
+  z-index: 5;
 }
 
-.flex-month-card:hover {
+.filter-scroll-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
   border-color: #222;
 }
 
-.flex-month-card.active {
-  border-color: #222;
-  border-width: 2px;
+/* Skeleton Loading Grid */
+.skeleton-loader {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.skeleton-box {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading-shimmer 1.5s infinite;
+  border-radius: 12px;
+}
+
+@keyframes loading-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Search Pill Animation */
+.search-bar-pill {
+  transition: all 0.25s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.search-bar-pill:hover .btn {
+  background-color: #f7f7f7 !important;
+}
+
+/* Suggestion Item Animation */
+.suggestion-item {
+  transition: all 0.2s ease;
+}
+
+.suggestion-item:hover {
   background-color: #f7f7f7;
-}
-
-.flex-month-icon {
-  font-size: 2rem;
-  margin-bottom: 0.5rem;
-  color: #717171;
+  transform: translateX(4px);
 }
 
 /* Months Tab (Circular Dial) */

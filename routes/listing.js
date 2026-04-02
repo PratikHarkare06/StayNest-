@@ -52,9 +52,11 @@ router
 //New Route
 router.get("/new", isLoggedIn, listingController.renderNewForm);
 
-//Search Route
+// Search Route
 router.get("/search", wrapAsync(listingController.searchDestinations));
 
+// Geo-Spatial Map Discovery API
+router.get("/api/map-bounds", wrapAsync(listingController.getByBounds));
 
 router
     .route("/:id")

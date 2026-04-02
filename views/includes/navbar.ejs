@@ -66,6 +66,17 @@
         <% if(!currUser){ %>
           <a class="nav-link fw-bold" href="/login">Sign up / Log in</a>
           <% } else { %>
+            <div class="dropdown me-2">
+              <button class="btn btn-sm btn-light rounded-pill border-0 px-3 fw-bold shadow-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                <i class="fa-solid fa-indian-rupee-sign me-1"></i> INR
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg rounded-4">
+                <li><a class="dropdown-item active disabled" href="#"><i class="fa-solid fa-indian-rupee-sign me-2 small"></i> Indian Rupee (₹)</a></li>
+                <li><a class="dropdown-item" href="#" onclick="toastInfo('Feature coming soon', 'Real-time multi-currency support is being integrated.')"><i class="fa-solid fa-dollar-sign me-2 small"></i> US Dollar ($)</a></li>
+                <li><a class="dropdown-item" href="#" onclick="toastInfo('Feature coming soon', 'Real-time multi-currency support is being integrated.')"><i class="fa-solid fa-euro-sign me-2 small"></i> Euro (€)</a></li>
+              </ul>
+            </div>
+
             <div class="dropdown">
               <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button"
                 data-bs-toggle="dropdown" aria-expanded="false">
@@ -78,6 +89,9 @@
                 </div>
                 <span>
                   <%= currUser.username %>
+                  <% if(currUser.isVerified) { %>
+                    <i class="fa-solid fa-circle-check text-info ms-1" style="font-size: 0.8rem;"></i>
+                  <% } %>
                 </span>
               </a>
               <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg p-2"
@@ -92,7 +106,7 @@
                     <li><a class="dropdown-item rounded-2" href="/dashboard"><i
                           class="fa-solid fa-gauge-high me-2 text-muted"></i>Dashboard</a></li>
                     <li><a class="dropdown-item rounded-2" href="/messages"><i
-                          class="fa-regular fa-message me-2 text-muted"></i>Messages <span class="badge bg-danger rounded-pill ms-2" style="font-size: 0.65rem;">New</span></a></li>
+                          class="fa-regular fa-message me-2 text-muted"></i>Messages <span id="msg-unread-badge" class="badge bg-danger rounded-pill ms-2" style="font-size: 0.65rem;">New</span></a></li>
                     <li><a class="dropdown-item rounded-2" href="/listings/new"><i
                           class="fa-solid fa-plus me-2 text-muted"></i>Host a home</a></li>
                     <li>

@@ -14,13 +14,22 @@ const listingSchema = new schema({
     url: {
       type: String,
       default:
-        "https://unsplash.com/photos/a-mountain-with-a-body-of-water-in-front-of-it-IG9kwm_tThI",
-      set: (v) =>
-        v === " "
-          ? "https://unsplash.com/photos/body-of-water-surrounded-by-trees-NRQV-hBF10M"
-          : v,
+        "https://images.unsplash.com/photo-1518780664697-55e3ad937233?q=80&w=2865&auto=format&fit=crop",
     },
   },
+  gallery: [
+    {
+       filename: String,
+       url: String
+    }
+  ],
+  amenities: [
+    {
+      type: String,
+      enum: ["Wifi", "Kitchen", "Pool", "Free Parking", "AC", "Washing Machine", "TV", "Iron", "Dedicated Workspace", "Self Check-in"]
+    }
+  ],
+  houseRules: [String],
   location: String,
   country: String,
   maxGuests: {
@@ -43,8 +52,8 @@ const listingSchema = new schema({
   },
   geometry: {
     type: {
-      type: String, // Don't do `{ location: { type: String } }`
-      enum: ["Point"], // 'location.type' must be 'Point'
+      type: String,
+      enum: ["Point"],
       required: true,
     },
     coordinates: {
@@ -52,6 +61,11 @@ const listingSchema = new schema({
       required: true,
     },
   },
+  status: {
+    type: String,
+    enum: ["Active", "Paused", "Draft"],
+    default: "Active"
+  }
 });
 
 listingSchema.post("findOneAndDelete", async (listing) => {

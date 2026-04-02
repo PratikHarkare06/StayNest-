@@ -1,9 +1,16 @@
 const express = require("express");
 const router = express.Router();
-const messageController = require("../controllers/message.js");
+const wrapAsync = require("../utils/wrapAsync.js");
 const { isLoggedIn } = require("../middleware.js");
+const messageController = require("../controllers/message.js");
 
-router.get("/", isLoggedIn, messageController.index);
-router.get("/:userId", isLoggedIn, messageController.chatWithUser);
+// Inbox Route
+router.get("/", isLoggedIn, wrapAsync(messageController.renderInbox));
+
+// Chat UI with specific User
+router.get("/:userId", isLoggedIn, wrapAsync(messageController.renderChat));
+
+// Send Message
+router.post("/", isLoggedIn, wrapAsync(messageController.sendMessage));
 
 module.exports = router;

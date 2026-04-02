@@ -16,11 +16,13 @@ router
     .get(userController.renderLoginForm)
     .post(saveReturnTo, userController.firebaseLogin); // Endpoint to catch Firebase ID Token
 
-router.get("/logout", userController.logout);
-
 router.get("/dashboard", isLoggedIn, userController.renderDashboard);
+router.get("/dashboard/host", isLoggedIn, userController.renderHostDashboard);
+router.post("/dashboard/verify-id", isLoggedIn, upload.single('idDocument'), userController.verifyId);
 router.post("/users/wishlist/:id", isLoggedIn, userController.toggleWishlist);
 router.post("/save-fcm-token", isLoggedIn, userController.saveFcmToken);
+
+router.get("/logout", userController.logout);
 
 // DEMO ONLY: Promote current user to Admin
 router.get("/demo/admin", isLoggedIn, async (req, res) => {

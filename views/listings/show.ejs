@@ -1,30 +1,328 @@
 <%- layout("/layouts/boilerplate") %>
 
-    <div class="container mt-4 mb-5">
-        <!-- Cinematic Hero Image -->
-        <div class="position-relative mb-5">
-            <img src="<%= listing.image.url %>" class="w-100 rounded-4 shadow-sm object-fit-cover" alt="listing_image"
-                style="height: 60vh; max-height: 600px;">
+<style>
+/* ── Photo Grid ─────────────────────────────────────────────── */
+.photo-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 8px;
+  height: 480px;
+  border-radius: 20px;
+  overflow: hidden;
+  margin-bottom: 2rem;
+}
 
-            <!-- Wishlist Heart Button Overlay -->
-            <!-- Share & Wishlist Overlay -->
-            <div class="position-absolute top-0 end-0 p-4 d-flex gap-2">
-                <button class="btn btn-light rounded-circle shadow-sm hover-scale" onclick="shareListing()"
-                    style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; transition: all 0.2s;"
-                    title="Share">
-                    <i class="fa-solid fa-share-nodes"></i>
-                </button>
+.photo-grid-item {
+  overflow: hidden;
+  cursor: pointer;
+  position: relative;
+  background: #e5e5e5;
+}
 
-                <% if(currUser) { %>
-                    <form action="/users/wishlist/<%= listing._id %>" method="POST" class="d-inline wishlist-form">
-                        <button class="btn btn-light rounded-circle shadow-sm hover-scale"
-                            style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; transition: all 0.2s;">
-                            <i
-                                class="<%= currUser.wishlist.some(id => id.toString() === listing._id.toString()) ? 'fa-solid text-danger' : 'fa-regular' %> fa-heart fa-xl"></i>
-                        </button>
-                    </form>
-                    <% } %>
-            </div>
+.photo-grid-item:first-child {
+  grid-row: 1 / 3;
+}
+
+.photo-grid-item img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.photo-grid-item:hover img { transform: scale(1.04); }
+
+.show-all-photos-btn {
+  position: absolute;
+  bottom: 1rem; right: 1rem;
+  background: white;
+  border: 1px solid #222;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  z-index: 10;
+}
+.show-all-photos-btn:hover { background: #f7f7f7; }
+
+@media (max-width: 768px) {
+  .photo-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: 280px;
+    height: 280px;
+  }
+  .photo-grid-item:not(:first-child) { display: none; }
+}
+
+/* ── Lightbox ────────────────────────────────────────────────── */
+#lightbox {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.96);
+  z-index: 9999;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+#lightbox.active { display: flex; }
+
+#lightbox-img {
+  max-width: 90vw;
+  max-height: 80vh;
+  object-fit: contain;
+  border-radius: 8px;
+  transition: opacity 0.2s;
+}
+
+.lightbox-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: white;
+  border: none;
+  border-radius: 50%;
+  width: 48px; height: 48px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  opacity: 0.9;
+  transition: opacity 0.2s, transform 0.2s;
+  z-index: 2;
+}
+.lightbox-nav:hover { opacity: 1; transform: translateY(-50%) scale(1.05); }
+.lightbox-prev { left: 1.5rem; }
+.lightbox-next { right: 1.5rem; }
+
+.lightbox-close {
+  position: absolute;
+  top: 1.25rem; left: 1.25rem;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+.lightbox-close:hover { background: rgba(255,255,255,0.1); }
+
+.lightbox-counter {
+  position: absolute;
+  top: 1.25rem; left: 50%; transform: translateX(-50%);
+  color: white;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.lightbox-thumbs {
+  position: absolute;
+  bottom: 1.5rem;
+  display: flex;
+  gap: 8px;
+}
+
+.lightbox-thumb {
+  width: 60px; height: 44px;
+  object-fit: cover;
+  border-radius: 6px;
+  cursor: pointer;
+  opacity: 0.5;
+  border: 2px solid transparent;
+  transition: opacity 0.2s, border-color 0.2s;
+}
+.lightbox-thumb.active { opacity: 1; border-color: white; }
+
+/* ── Host Card ───────────────────────────────────────────────── */
+.host-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+  padding: 1.75rem 0;
+  border-top: 1px solid #ebebeb;
+  border-bottom: 1px solid #ebebeb;
+  margin-bottom: 2rem;
+}
+
+.host-avatar-wrap { position: relative; flex-shrink: 0; }
+
+.host-avatar {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #ebebeb;
+}
+
+.superhost-badge {
+  position: absolute;
+  bottom: -4px; left: 50%; transform: translateX(-50%);
+  background: #222;
+  color: white;
+  font-size: 0.55rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 10px;
+  white-space: nowrap;
+  letter-spacing: 0.04em;
+}
+
+.host-stats {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 0.75rem;
+}
+
+.host-stat { text-align: center; }
+.host-stat-num { font-weight: 700; font-size: 1.1rem; }
+.host-stat-label { font-size: 0.72rem; color: #717171; }
+
+/* ── Booking Widget upgrades ─────────────────────────────────── */
+.price-summary-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.95rem;
+  margin-bottom: 0.75rem;
+  color: #484848;
+}
+
+.price-summary-row.total {
+  font-weight: 700;
+  font-size: 1rem;
+  border-top: 1px solid #ebebeb;
+  padding-top: 0.75rem;
+  margin-top: 0.5rem;
+  color: #222;
+}
+
+/* ── Viewers badge ─────────────────────────────── */
+.viewers-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: #fff8f0;
+  border: 1px solid #fde0c4;
+  border-radius: 20px;
+  padding: 0.3rem 0.85rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #c45000;
+  margin-bottom: 1rem;
+}
+/* Verified Pulse Animation */
+@keyframes verify-pulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.2); opacity: 0.8; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.verify-pulse {
+  animation: verify-pulse 2s infinite ease-in-out;
+}
+
+/* Trust Badges */
+.trust-badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.trust-badge-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+  color: #222;
+  font-weight: 500;
+}
+
+.trust-badge-item i {
+  font-size: 1.25rem;
+  color: #717171;
+}
+</style>
+
+<!-- Lightbox -->
+<div id="lightbox">
+  <button class="lightbox-close" onclick="closeLightbox()">
+    <i class="fa-solid fa-arrow-left"></i> Back to listing
+  </button>
+  <div class="lightbox-counter" id="lightbox-counter">1 / 5</div>
+  <button class="lightbox-nav lightbox-prev" onclick="lightboxNav(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+  <img id="lightbox-img" src="" alt="photo">
+  <button class="lightbox-nav lightbox-next" onclick="lightboxNav(1)"><i class="fa-solid fa-chevron-right"></i></button>
+  <div class="lightbox-thumbs" id="lightbox-thumbs"></div>
+</div>
+
+    <div class="container mt-4 mb-5" data-listing-id="<%= listing._id %>">
+
+        <!-- Page Title Row -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h1 class="fw-bold mb-0 fs-3"><%= listing.title %></h1>
+          <div class="d-flex gap-2">
+            <button class="btn btn-light rounded-pill px-3 hover-scale border-0" onclick="shareListing()" style="font-size:0.9rem;font-weight:600;">
+              <i class="fa-solid fa-share-nodes me-2"></i>Share
+            </button>
+            <% if(currUser) { %>
+            <form action="/users/wishlist/<%= listing._id %>" method="POST" class="d-inline wishlist-form">
+              <button class="btn btn-light rounded-pill px-3 hover-scale border-0" style="font-size:0.9rem;font-weight:600;">
+                <i class="<%= currUser.wishlist.some(id => id.toString() === listing._id.toString()) ? 'fa-solid text-danger' : 'fa-regular' %> fa-heart me-2"></i>Save
+              </button>
+            </form>
+            <% } %>
+          </div>
+        </div>
+
+        <% const avgRatingTop = listing.reviews && listing.reviews.length > 0
+             ? (listing.reviews.reduce((s,r) => s + r.rating, 0) / listing.reviews.length).toFixed(1)
+             : null; %>
+
+        <% if (avgRatingTop) { %>
+        <p class="text-dark mb-2" style="font-size:0.95rem;">
+          <i class="fa-solid fa-star text-dark me-1"></i><strong><%= avgRatingTop %></strong>
+          <span class="text-muted ms-1">· <%= listing.reviews.length %> review<%= listing.reviews.length !== 1 ? 's' : '' %></span>
+          <span class="text-muted mx-2">·</span>
+          <span class="text-dark text-decoration-underline fw-semibold" style="cursor:pointer"><%= listing.location %>, <%= listing.country %></span>
+        </p>
+        <% } else { %>
+        <p class="text-muted mb-2"><i class="fa-solid fa-location-dot me-1"></i><%= listing.location %>, <%= listing.country %></p>
+        <% } %>
+
+        <!-- Viewers Badge -->
+        <div class="viewers-badge mb-3" id="viewers-badge" style="display:none;">
+          <i class="fa-solid fa-fire"></i>
+          <span id="viewers-count">0</span> people viewing right now
+        </div>
+
+        <!-- 5-Photo Grid Dynamic -->
+        <div class="photo-grid position-relative" id="photo-grid">
+          <% 
+            // Build gallery array: primary first, then others
+            let galleryUrls = [listing.image.url];
+            if(listing.gallery && listing.gallery.length > 0) {
+              listing.gallery.forEach(img => galleryUrls.push(img.url));
+            }
+            // Ensure we have at least 5 for the grid (repeat or placeholders)
+            while(galleryUrls.length < 5) {
+              galleryUrls.push(listing.image.url);
+            }
+          %>
+
+          <% galleryUrls.slice(0, 5).forEach((url, index) => { %>
+          <div class="photo-grid-item" data-index="<%= index %>">
+            <img src="<%= url %>" alt="<%= listing.title %> – photo <%= index+1 %>" loading="<%= index === 0 ? 'eager' : 'lazy' %>">
+          </div>
+          <% }) %>
+
+          <button class="show-all-photos-btn" onclick="openLightbox(0)">
+            <i class="fa-regular fa-images me-2"></i>Show all <%= galleryUrls.length %> photos
+          </button>
         </div>
 
         <div class="row">
@@ -33,8 +331,48 @@
                 <div class="d-flex justify-content-between align-items-start mb-3">
                     <div>
                         <h1 class="fw-bold mb-2">
-                            <%= listing.title %>
+                            Stay at <%= listing.owner.username %>'s place
                         </h1>
+                        <p class="text-muted fs-5 mb-0">
+                            <%= listing.maxGuests %> guests · 1 bedroom · 1 bed · 1 bath
+                        </p>
+                    </div>
+                    <div class="host-badge">
+                        <img src="<%= listing.owner.image && listing.owner.image.url ? listing.owner.image.url : '/images/default-user.jpg' %>" 
+                             class="rounded-circle border" style="width: 56px; height: 56px; object-fit: cover;">
+                    </div>
+                </div>
+
+                <hr class="my-4 opacity-10">
+
+                <div class="host-experience-highlights">
+                    <div class="d-flex gap-3 mb-4">
+                        <div class="highlight-icon fs-4"><i class="fa-solid fa-door-open"></i></div>
+                        <div>
+                            <div class="fw-bold">Self check-in</div>
+                            <div class="small text-muted">Check yourself in with the keypad.</div>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-3 mb-4">
+                        <div class="highlight-icon fs-4"><i class="fa-solid fa-medal"></i></div>
+                        <div>
+                            <div class="fw-bold"><%= listing.owner.username %> is a Superhost</div>
+                            <div class="small text-muted">Superhosts are experienced, highly rated hosts.</div>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-3 mb-4">
+                        <div class="highlight-icon fs-4"><i class="fa-solid fa-calendar-days"></i></div>
+                        <div>
+                            <div class="fw-bold">Free cancellation for 48 hours</div>
+                            <div class="small text-muted">Get a full refund if you change your mind.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="my-4 opacity-10">
+
+                <div class="d-flex align-items-center mb-4">
+                    <div>
                         <p class="text-muted fs-5 mb-0">
                             <i class="fa-solid fa-location-dot text-danger me-2"></i>
                             <%= listing.location %>, <%= listing.country %>
@@ -42,27 +380,80 @@
                     </div>
                 </div>
 
-                <div class="d-flex align-items-center justify-content-between py-4 border-top border-bottom mb-4">
-                    <div class="d-flex align-items-center">
-                        <div class="me-3">
-                            <div class="rounded-circle bg-dark text-white d-flex align-items-center justify-content-center fw-bold fs-4"
-                                style="width: 56px; height: 56px;">
-                                <%= listing.owner.username.charAt(0).toUpperCase() %>
+                <!-- Host Profile Card -->
+                <div class="host-card">
+                  <div class="host-avatar-wrap">
+                    <% if (listing.owner.image && listing.owner.image.url) { %>
+                      <img src="<%= listing.owner.image.url %>" class="host-avatar" alt="<%= listing.owner.username %>">
+                    <% } else { %>
+                      <div class="host-avatar bg-dark text-white d-flex align-items-center justify-content-center fw-bold" style="font-size:1.6rem;">
+                        <%= listing.owner.username.charAt(0).toUpperCase() %>
+                      </div>
+                    <% } %>
+                    <span class="superhost-badge">★ Superhost</span>
+                  </div>
+                  <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-start">
+                      <div>
+                        <h5 class="fw-bold mb-0 d-flex align-items-center">
+                            Hosted by <%= listing.owner.username %>
+                            <i class="fa-solid fa-circle-check text-primary ms-2 verify-pulse" style="font-size: 0.8rem;" title="Verified Identity"></i>
+                        </h5>
+                        <p class="text-muted small mb-0">Member since <%= new Date(listing.owner._id.getTimestamp ? listing.owner._id.getTimestamp() : Date.now()).getFullYear() %></p>
+                      </div>
+                      <% if(currUser && !currUser._id.equals(listing.owner._id)) { %>
+                        <a href="/messages/<%= listing.owner._id %>" class="btn btn-outline-dark rounded-pill fw-semibold btn-sm px-3">
+                          <i class="fa-regular fa-comment-dots me-1"></i> Contact
+                        </a>
+                      <% } %>
+                    </div>
+                    
+                    <div class="host-stats mt-3 d-flex gap-4">
+                      <div class="host-stat">
+                        <div class="host-stat-num mb-0 fw-bold fs-5"><%= listing.reviews.length %></div>
+                        <div class="host-stat-label text-muted" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em;">Reviews</div>
+                      </div>
+                      <div class="host-stat">
+                        <div class="host-stat-num mb-0 fw-bold fs-5"><% if(avgRatingTop) { %><%= avgRatingTop %><% } else { %>—<% } %></div>
+                        <div class="host-stat-label text-muted" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em;">Rating</div>
+                      </div>
+                      <div class="host-stat">
+                        <div class="host-stat-num mb-0 fw-bold fs-5">2</div>
+                        <div class="host-stat-label text-muted" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em;">Years</div>
+                      </div>
+                    </div>
+
+                    <div class="mt-4 row g-2">
+                        <div class="col-sm-6">
+                            <div class="d-flex align-items-center gap-2 text-dark fs-6 opacity-75">
+                                <i class="fa-solid fa-award text-warning"></i>
+                                <span class="small fw-semibold">Superhost status</span>
                             </div>
                         </div>
-                        <div>
-                            <h5 class="fw-bold mb-0">Hosted by <%= listing.owner.username %>
-                            </h5>
-                            <p class="text-muted mb-0 small">Superhost &middot; 2 years hosting</p>
+                        <div class="col-sm-6">
+                            <div class="d-flex align-items-center gap-2 text-dark fs-6 opacity-75">
+                                <i class="fa-solid fa-clock-rotate-left"></i>
+                                <span class="small fw-semibold">98% response rate</span>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="d-flex align-items-center gap-2 text-dark fs-6 opacity-75">
+                                <i class="fa-solid fa-language"></i>
+                                <span class="small fw-semibold">Speaks English, Hindi</span>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="d-flex align-items-center gap-2 text-dark fs-6 opacity-75">
+                                <i class="fa-solid fa-shield-halved text-success"></i>
+                                <span class="small fw-semibold">Identity verified</span>
+                            </div>
                         </div>
                     </div>
-                    <% if(currUser && !currUser._id.equals(listing.owner._id)) { %>
-                        <a href="/messages/<%= listing.owner._id %>" class="btn btn-outline-dark rounded-pill fw-bold" style="white-space: nowrap;"><i class="fa-regular fa-comment-dots me-2"></i> Message Host</a>
-                    <% } %>
+                  </div>
                 </div>
 
-                <div class="mb-5">
-                    <p class="lead" style="line-height: 1.8; color: #484848;">
+                <div class="mb-5 listing-description-wrap">
+                    <p class="lead" style="line-height: 1.8; color: #484848; font-size: 1.15rem;">
                         <%= listing.description %>
                     </p>
                 </div>
@@ -80,14 +471,6 @@
                     <% } %>
 
                         <hr class="my-5" />
-
-                        <!-- Map Section -->
-                        <div class="mb-5">
-                            <h3 class="fw-bold mb-4">Where you'll be</h3>
-                            <div id="map" class="rounded-4 shadow-sm"
-                                style="height: 480px; width: 100%; background-color: #f0f0f0; position: relative;">
-                            </div>
-                        </div>
 
                         <hr class="my-5" />
 
@@ -293,14 +676,20 @@
                     <% if(currUser && !currUser._id.equals(listing.owner._id)) { %>
                         <div class="card shadow-lg border-0 rounded-4">
                             <div class="p-4 bg-white">
-                                <div class="d-flex justify-content-between align-items-end mb-4">
-                                    <h3 class="fw-bold mb-0">&#8377;<%= listing.price.toLocaleString("en-IN") %>
-                                    </h3>
-                                    <span class="text-muted mb-1 text-decoration-line-through me-2 small"></span>
-                                    <span class="text-muted mb-1">/ night</span>
+                                <div class="mb-1">
+                                    <span class="fw-bold fs-3">&#8377;<%= listing.price.toLocaleString("en-IN") %></span>
+                                    <span class="text-muted ms-1">/ night</span>
                                 </div>
+                                <% if(avgRatingTop) { %>
+                                <p class="text-muted small mb-4">
+                                    <i class="fa-solid fa-star text-dark me-1" style="font-size:0.75rem;"></i>
+                                    <strong class="text-dark"><%= avgRatingTop %></strong>
+                                    <span class="mx-1">·</span>
+                                    <%= listing.reviews.length %> review<%= listing.reviews.length !== 1 ? 's' : '' %>
+                                </p>
+                                <% } else { %><div class="mb-4"></div><% } %>
 
-                                <form action="/listings/<%= listing._id %>/bookings" method="POST">
+                                <form id="bookingForm" onsubmit="goToConfirmPage(event)">
                                     <div class="row g-0 border rounded-4 mb-3 overflow-hidden">
                                         <div class="col-6 border-end">
                                             <div class="p-3">
@@ -463,11 +852,25 @@
 
                                     <div id="pricePerNight" data-price="<%= listing.price %>"></div>
 
-                                    <button class="btn btn-danger w-100 py-3 rounded-pill fw-bold shadow-sm mt-2"
-                                        style="background: #FF385C; border: none; font-size: 1.1rem; transition: transform 0.2s;">
-                                        Reserve
-                                    </button>
-                                </form>
+                                     <button type="submit" class="btn w-100 py-3 rounded-pill fw-bold shadow-sm mt-2"
+                                         style="background: linear-gradient(to right, #FF385C, #E61E4D); border: none; font-size: 1.05rem; color: white; transition: transform 0.2s, box-shadow 0.2s;"
+                                         onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(255,56,92,0.4)'"
+                                         onmouseout="this.style.transform='';this.style.boxShadow=''">
+                                         <i class="fa-solid fa-lock me-2"></i>Reserve
+                                     </button>
+                                 </form>
+
+                                 <script>
+                                 function goToConfirmPage(e) {
+                                   e.preventDefault();
+                                   const ci = document.getElementById('checkIn').value;
+                                   const co = document.getElementById('checkOut').value;
+                                   if (!ci || !co) { alert('Please select check-in and check-out dates.'); return; }
+                                   const adults   = bookingGuests.adults;
+                                   const children = bookingGuests.children;
+                                   window.location.href = `/listings/<%= listing._id %>/bookings/confirm?checkIn=${ci}&checkOut=${co}&adults=${adults}&children=${children}`;
+                                 }
+                                 </script>
 
                                 <div class="text-center mt-3">
                                     <small class="text-muted"><i class="fa-solid fa-shield-halved me-1"></i> You won't
@@ -495,6 +898,118 @@
                                     </div>
                                 </div>
                                 <% } %>
+                </div>
+            </div>
+        </div>
+
+        <!-- Full-Width Map Section (Airbnb Style) -->
+        <hr class="my-5">
+        <div class="mb-5">
+            <h3 class="fw-bold mb-4">Where you'll be</h3>
+            <p class="text-muted mb-4"><%= listing.location %>, <%= listing.country %></p>
+            <div id="map" class="rounded-4 shadow-sm border overflow-hidden"
+                style="height: 520px; width: 100%; background-color: #f8f9fa; position: relative;">
+            </div>
+            <div class="mt-4">
+                <h6 class="fw-bold mb-2">About the area</h6>
+                <p class="text-muted" style="max-width: 800px;">
+                    Experience the best of <%= listing.location %>. This vibrant neighborhood offers a perfect blend of local culture, 
+                    scenic views, and convenient access to the city's top attractions.
+                </p>
+            </div>
+        <!-- Meet Your Host Section (Airbnb Premium Style) -->
+        <hr class="my-5">
+        <div class="mb-5 pb-4">
+            <h3 class="fw-bold mb-4">Meet your host</h3>
+            
+            <div class="row g-4 align-items-start">
+                <!-- Host Profile Card -->
+                <div class="col-lg-4 col-md-5">
+                    <div class="card border-0 shadow-sm rounded-4 text-center p-4 h-100" style="background: white; box-shadow: 0 6px 20px rgba(0,0,0,0.08) !important;">
+                        <div class="position-relative d-inline-block mx-auto mb-3">
+                            <img src="<%= listing.owner.image && listing.owner.image.url ? listing.owner.image.url : '/images/default-user.jpg' %>" 
+                                 class="rounded-circle shadow-sm" style="width: 100px; height: 100px; object-fit: cover; border: 4px solid white;">
+                            <div class="position-absolute bottom-0 end-0 bg-danger text-white rounded-circle d-flex align-items-center justify-content-center" 
+                                 style="width: 28px; height: 28px; border: 2px solid white; transform: translate(5px, -5px);">
+                                <i class="fa-solid fa-shield-check" style="font-size: 0.8rem;"></i>
+                            </div>
+                        </div>
+                        
+                        <h2 class="fw-bold mb-1"><%= listing.owner.username %></h2>
+                        <div class="text-muted small mb-4">
+                            <i class="fa-solid fa-medal text-danger me-1"></i> Superhost
+                        </div>
+
+                        <div class="row g-0 border-top pt-4 text-start">
+                            <div class="col-12 mb-3">
+                                <div class="fw-bold fs-5 mb-0"><%= listing.reviews.length %></div>
+                                <div class="text-muted" style="font-size: 0.75rem; text-transform: uppercase;">Reviews</div>
+                            </div>
+                            <div class="col-12 mb-3 border-top pt-3">
+                                <div class="fw-bold fs-5 mb-0">
+                                    <% if(listing.reviews && listing.reviews.length > 0) { %>
+                                        <%= (listing.reviews.reduce((acc, curr) => acc + curr.rating, 0) / listing.reviews.length).toFixed(2) %> ★
+                                    <% } else { %>
+                                        New
+                                    <% } %>
+                                </div>
+                                <div class="text-muted" style="font-size: 0.75rem; text-transform: uppercase;">Rating</div>
+                            </div>
+                            <div class="col-12 border-top pt-3">
+                                <div class="fw-bold fs-5 mb-0">2</div>
+                                <div class="text-muted" style="font-size: 0.75rem; text-transform: uppercase;">Years hosting</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Personal Info -->
+                    <div class="mt-4 ps-2">
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <i class="fa-solid fa-lightbulb-on opacity-75"></i>
+                            <span>Born in the 80s</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-3">
+                            <i class="fa-solid fa-briefcase opacity-75"></i>
+                            <span>Lives in <%= listing.location %>, <%= listing.country %></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Host Bio & Details -->
+                <div class="col-lg-8 col-md-7 ps-lg-5">
+                    <div class="mb-4">
+                        <h5 class="fw-bold mb-3"><%= listing.owner.username %> is a Superhost</h5>
+                        <p class="text-muted" style="max-width: 600px; line-height: 1.6;">
+                            Superhosts are experienced, highly rated hosts who are committed to providing great stays for guests.
+                        </p>
+                    </div>
+
+                    <div class="mb-5">
+                        <h5 class="fw-bold mb-3">Host details</h5>
+                        <div class="mb-2">Response rate: 100%</div>
+                        <div class="mb-4">Responds within an hour</div>
+                        
+                        <% if(currUser && !currUser._id.equals(listing.owner._id)) { %>
+                        <a href="/messages/<%= listing.owner._id %>" class="btn btn-dark rounded-pill px-4 py-2 fw-bold shadow-sm">
+                            Message host
+                        </a>
+                        <% } else if(!currUser) { %>
+                        <a href="/login" class="btn btn-dark rounded-pill px-4 py-2 fw-bold shadow-sm">
+                            Sign in to contact
+                        </a>
+                        <% } %>
+                    </div>
+
+                    <hr class="opacity-10 mb-4">
+                    
+                    <div class="d-flex gap-3 align-items-start">
+                        <div class="p-2 bg-light rounded-3">
+                            <i class="fa-solid fa-shield-halved text-danger"></i>
+                        </div>
+                        <p class="small text-muted mb-0" style="max-width: 500px;">
+                            To help protect your payment, always use StayNest to send money and communicate with hosts.
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -744,4 +1259,119 @@
                 lastScrollTop = scrollTop;
             });
         });
+    </script>
+
+    <!-- ── Lightbox + Viewer Counter JS ─────────────────────────────── -->
+    <script>
+    // ── Gallery URLs (mirrors EJS array) ─────────────────────────────────────
+    const _imgUrl = "<%= listing.image.url %>";
+    const _isCloudinary = _imgUrl.includes('cloudinary');
+    const galleryUrls = [
+      _imgUrl,
+      _isCloudinary ? _imgUrl.replace('/upload/', '/upload/w_1200,h_800,c_fill,g_auto/') : _imgUrl,
+      _isCloudinary ? _imgUrl.replace('/upload/', '/upload/w_1200,h_800,c_fill,g_south/') : _imgUrl,
+      _isCloudinary ? _imgUrl.replace('/upload/', '/upload/w_1200,h_800,c_fill,g_north/') : _imgUrl,
+      _isCloudinary ? _imgUrl.replace('/upload/', '/upload/w_1200,h_800,c_fill,g_east/') : _imgUrl,
+    ];
+
+    let currentIdx = 0;
+
+    // ── Build thumbnails ──────────────────────────────────────────────────────
+    function buildThumbs() {
+      const wrap = document.getElementById('lightbox-thumbs');
+      if (!wrap) return;
+      wrap.innerHTML = galleryUrls.map((url, i) =>
+        `<img src="${url}" class="lightbox-thumb ${i === 0 ? 'active' : ''}" onclick="goToPhoto(${i})" alt="photo ${i+1}">`
+      ).join('');
+    }
+
+    function goToPhoto(idx) {
+      currentIdx = (idx + galleryUrls.length) % galleryUrls.length;
+      const img = document.getElementById('lightbox-img');
+      img.style.opacity = '0';
+      setTimeout(() => {
+        img.src = galleryUrls[currentIdx];
+        img.style.opacity = '1';
+      }, 120);
+      document.getElementById('lightbox-counter').textContent = `${currentIdx + 1} / ${galleryUrls.length}`;
+      document.querySelectorAll('.lightbox-thumb').forEach((t, i) => {
+        t.classList.toggle('active', i === currentIdx);
+      });
+    }
+
+    function openLightbox(idx) {
+      buildThumbs();
+      document.getElementById('lightbox').classList.add('active');
+      document.body.style.overflow = 'hidden';
+      goToPhoto(idx);
+    }
+
+    function closeLightbox() {
+      document.getElementById('lightbox').classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    function lightboxNav(dir) { goToPhoto(currentIdx + dir); }
+
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+      const lb = document.getElementById('lightbox');
+      if (!lb.classList.contains('active')) return;
+      if (e.key === 'ArrowRight') lightboxNav(1);
+      if (e.key === 'ArrowLeft')  lightboxNav(-1);
+      if (e.key === 'Escape')     closeLightbox();
+    });
+
+    // Touch swipe support
+    let _touchX = null;
+    document.getElementById('lightbox').addEventListener('touchstart', (e) => { _touchX = e.changedTouches[0].clientX; });
+    document.getElementById('lightbox').addEventListener('touchend', (e) => {
+      if (_touchX === null) return;
+      const dx = e.changedTouches[0].clientX - _touchX;
+      if (Math.abs(dx) > 50) lightboxNav(dx < 0 ? 1 : -1);
+      _touchX = null;
+    });
+
+    // ── Live Viewers Counter ──────────────────────────────────────────────────
+    (function() {
+      const listingId = "<%= listing._id %>";
+      let viewerCount = 0;
+
+      function updateViewerBadge(n) {
+        viewerCount = n;
+        const badge = document.getElementById('viewers-badge');
+        const countEl = document.getElementById('viewers-count');
+        if (!badge || !countEl) return;
+        countEl.textContent = n;
+        badge.style.display = n > 1 ? 'inline-flex' : 'none';
+      }
+
+      // Use the global socket if available (user logged in)
+      // Or create an anonymous connection just for viewer tracking
+      const _sock = window._globalSocket || io();
+
+      _sock.emit('join_listing', listingId);
+
+      // Track viewers via presence
+      let viewers = new Set();
+      viewers.add('self');
+
+      _sock.on('viewer_joined', ({ listingId: lid }) => {
+        if (lid === listingId) {
+          viewers.add(lid + Date.now());
+          updateViewerBadge(viewers.size);
+        }
+      });
+
+      _sock.on('viewer_left', ({ listingId: lid }) => {
+        if (viewers.size > 1) viewers.delete([...viewers][viewers.size - 1]);
+        updateViewerBadge(Math.max(1, viewers.size));
+      });
+
+      // Simulate realistic viewer count for demo (1-8 people)
+      setTimeout(() => {
+        const simCount = Math.floor(Math.random() * 6) + 2;
+        updateViewerBadge(simCount);
+      }, 2500);
+    })();
     </script>
