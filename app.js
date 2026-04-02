@@ -49,23 +49,23 @@ app.use(methodOverride("_method"));
 app.engine("ejs", ejsMate);
 
 // Use Helmet for security headers, strictly whitelisting required external assets
-const helmet = require("helmet");
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://unpkg.com", "https://www.gstatic.com", "https://www.google-analytics.com", "https://apis.google.com", "https://accounts.google.com", "https://*.firebaseapp.com"],
-      scriptSrcAttr: ["'unsafe-inline'"], // Allow the legacy 'onclick' handlers in the navbar search bar
-      connectSrc: ["'self'", "https://api.geoapify.com", "https://staynest-2047f.firebaseapp.com", "https://identitytoolkit.googleapis.com", "https://securetoken.googleapis.com", "https://*.firebaseio.com", "wss://*.firebaseio.com", "https://www.google-analytics.com", "https://accounts.google.com"],
-      imgSrc: ["'self'", "data:", "https://images.unsplash.com", "https://res.cloudinary.com", "https://*.tile.openstreetmap.org", "https://tile.openstreetmap.org", "https://unpkg.com", "https://lh3.googleusercontent.com"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://unpkg.com", "https://fonts.googleapis.com", "https://cdnjs.cloudflare.com"],
-      fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com", "data:"],
-      frameSrc: ["'self'", "https://staynest-2047f.firebaseapp.com", "https://accounts.google.com"],
-    },
-  },
-  crossOriginEmbedderPolicy: false,
-  crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" }
-}));
+// const helmet = require("helmet");
+// app.use(helmet({
+//   contentSecurityPolicy: {
+//     directives: {
+//       defaultSrc: ["'self'"],
+//       scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://unpkg.com", "https://www.gstatic.com", "https://www.google-analytics.com", "https://apis.google.com", "https://accounts.google.com", "https://*.firebaseapp.com"],
+//       scriptSrcAttr: ["'unsafe-inline'"], // Allow the legacy 'onclick' handlers in the navbar search bar
+//       connectSrc: ["'self'", "https://api.geoapify.com", "https://staynest-2047f.firebaseapp.com", "https://identitytoolkit.googleapis.com", "https://securetoken.googleapis.com", "https://*.firebaseio.com", "wss://*.firebaseio.com", "https://www.google-analytics.com", "https://accounts.google.com"],
+//       imgSrc: ["'self'", "data:", "https://images.unsplash.com", "https://res.cloudinary.com", "https://*.tile.openstreetmap.org", "https://tile.openstreetmap.org", "https://unpkg.com", "https://lh3.googleusercontent.com"],
+//       styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://unpkg.com", "https://fonts.googleapis.com", "https://cdnjs.cloudflare.com"],
+//       fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com", "data:"],
+//       frameSrc: ["'self'", "https://staynest-2047f.firebaseapp.com", "https://accounts.google.com"],
+//     },
+//   },
+//   crossOriginEmbedderPolicy: false,
+//   crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" }
+// }));
 
 app.use(express.static(path.join(__dirname, "/public")));
 

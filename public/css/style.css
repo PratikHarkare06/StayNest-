@@ -48,13 +48,23 @@ h6 {
    ========================================= */
 .navbar {
   height: 5rem;
-  background-color: rgba(255, 255, 255, 0.85) !important;
-  backdrop-filter: blur(12px) !important;
-  -webkit-backdrop-filter: blur(12px);
+  background-color: rgba(255, 255, 255, 0.75) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
   z-index: 1050;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
+/* Tactile Feedback for all main buttons */
+.btn:active,
+.search-bar-pill-mobile:active,
+.filter:active,
+.listing-card:active {
+  transform: scale(0.96) !important;
+  transition: transform 0.15s cubic-bezier(0, 0, 0.2, 1) !important;
+}
+
 
 /* Floating Map Button (Mobile) */
 .floating-map-btn {
@@ -177,17 +187,12 @@ h6 {
   /* Subtle zoom */
 }
 
-.listing-card {
-  border: none !important;
-  margin-bottom: 2rem;
-  background: transparent;
-  transition: var(--transition) !important;
-  overflow: hidden;
-  /* Contain the zoom */
-  border-radius: var(--border-radius-lg);
-  /* Ensure border radius is kept during zoom */
-  transform: translateZ(0);
-  /* Performance optimization */
+/* Mobile-Specific Card Logic */
+@media (max-width: 768px) {
+  .listing-card {
+    border-radius: 0 !important;
+    margin-bottom: 1.5rem !important;
+  }
 }
 
 /* Heart Pop Animation */
@@ -485,23 +490,37 @@ footer {
 }
 
 /* =========================================
-   8. SKELETON LOADING
+   8. SKELETON LOADING & SHIMMER
    ========================================= */
-.skeleton {
-  background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite linear;
+.skeleton-shimmer {
+  background: #f6f7f8;
+  background-image: linear-gradient(to right, #f6f7f8 0%, #edeef1 20%, #f6f7f8 40%, #f6f7f8 100%);
+  background-repeat: no-repeat;
+  background-size: 800px 100%;
+  display: inline-block;
+  position: relative;
+  animation-duration: 1s;
+  animation-fill-mode: forwards;
+  animation-iteration-count: infinite;
+  animation-name: shimmerEffect;
+  animation-timing-function: linear;
 }
 
-@keyframes shimmer {
+@keyframes shimmerEffect {
   0% {
-    background-position: 200% 0;
+    background-position: -468px 0;
   }
-
   100% {
-    background-position: -200% 0;
+    background-position: 468px 0;
   }
 }
+
+.skeleton-card-img {
+  width: 100%;
+  aspect-ratio: 1/1;
+  border-radius: 12px;
+}
+
 
 .skeleton-card {
   height: 100%;
@@ -1633,9 +1652,9 @@ img.lazy-loaded.blur-up {
   box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
   padding: 12px 16px;
   padding-bottom: max(12px, env(safe-area-inset-bottom));
-  z-index: 1050;
+  z-index: 2000; /* Extremely high to beat bottom nav */
   transform: translateY(100%);
-  transition: transform 0.3s ease-out;
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   display: none;
 }
 
@@ -1925,3 +1944,177 @@ html {
     width: var(--bar-width);
   }
 }
+/* =========================================
+   MOBILE OPTIMIZATIONS (Airbnb Style)
+   ========================================= */
+@media (max-width: 768px) {
+  /* Step 1: Mobile Responsive Layout */
+  .container {
+    padding-left: 15px !important;
+    padding-right: 15px !important;
+  }
+
+  /* Full width cards on mobile */
+  .row-cols-sm-1 > .col {
+    width: 100% !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  .listing-card {
+    margin-bottom: 1.5rem !important;
+    border-radius: 0 !important; /* Full edge-to-edge feel */
+  }
+
+  .listing-card .card-img-top {
+    border-radius: 0 !important;
+    aspect-ratio: 1/1 !important;
+  }
+
+  .listing-card .card-body {
+    padding: 12px 15px !important;
+  }
+
+  /* Step 2: Sticky Top Search Bar (Mobile) */
+  .navbar {
+    height: auto !important;
+    padding: 10px 0 !important;
+    background: white !important;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.08) !important;
+  }
+
+  .search-bar-pill-mobile {
+    margin-top: 0 !important;
+    width: 90% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    height: 54px !important;
+    display: flex !important;
+    align-items: center !important;
+    border: 0.5px solid rgba(0,0,0,0.08) !important;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1) !important;
+  }
+
+  /* Step 3: Bottom Navigation Bar Padding */
+  body {
+    padding-bottom: 90px !important; /* Space for bottom nav or booking bar */
+  }
+
+  .fixed-bottom {
+    display: block !important;
+    background: white !important;
+    border-top: 1px solid #ebebeb !important;
+    padding-top: 10px !important;
+    padding-bottom: max(1rem, env(safe-area-inset-bottom)) !important;
+  }
+
+  /* Floating Map Button Adjust for Bottom Nav */
+  .floating-map-btn {
+    bottom: 110px !important;
+    font-size: 14px !important;
+    padding: 12px 24px !important;
+    z-index: 1050;
+  }
+
+  /* Filters Horizontal Scroll - ensure it fits */
+  #filters-main-container {
+    padding: 0 15px !important;
+    top: 74px !important; /* Below mobile sticky search */
+    background-color: white !important;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+  }
+
+  /* Step 3: Bottom Navigation Bar + Glassmorphism */
+
+  .fixed-bottom {
+    display: block !important;
+    background: rgba(255, 255, 255, 0.8) !important;
+    backdrop-filter: blur(25px) saturate(200%) !important;
+    -webkit-backdrop-filter: blur(25px) saturate(200%);
+    border-top: 1px solid rgba(0, 0, 0, 0.08) !important;
+    padding-top: 12px !important;
+    padding-bottom: calc(env(safe-area-inset-bottom) + 12px) !important;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.03) !important;
+  }
+
+  /* Step 4: Snap Scroll for Filters */
+  #filters {
+    scroll-snap-type: x mandatory !important;
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+  }
+
+  .filter {
+    scroll-snap-align: center !important;
+  }
+
+  /* Step 5: Mobile Drawer Modal Style */
+  .modal.fade .modal-dialog {
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  }
+
+  .modal.show .modal-dialog {
+    transform: none !important;
+  }
+
+  .modal-dialog {
+    margin: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+  }
+
+  .modal-content {
+    border-radius: 24px 24px 0 0 !important;
+    border: none !important;
+    min-height: 80vh !important;
+    max-height: 95vh !important;
+    padding-bottom: env(safe-area-inset-bottom) !important;
+  }
+
+  /* Handle for the drawer */
+  .modal-content::before {
+    content: "";
+    width: 36px;
+    height: 4px;
+    background: #dddddd;
+    border-radius: 2px;
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  /* Reset search big pill for drawer on mobile */
+  .search-big-pill {
+    box-shadow: none !important;
+    border: none !important;
+    background: transparent !important;
+    padding-top: 20px !important;
+  }
+
+  .search-section {
+    border-bottom: 1px solid #f1f1f1 !important;
+    padding: 1.5rem !important;
+  }
+}
+
+/* Ensure desktop modals behave normally */
+@media (min-width: 769px) {
+  .modal-dialog {
+    margin: 1.75rem auto !important;
+    max-width: 850px !important;
+    position: relative !important;
+    bottom: auto !important;
+  }
+
+  .modal-content {
+    border-radius: 32px !important;
+    min-height: auto !important;
+    max-height: auto !important;
+  }
+}
+
+

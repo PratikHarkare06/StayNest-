@@ -89,7 +89,7 @@
     <div id="main-content-row" class="row">
       <!-- List Side -->
       <div id="listings-side" class="col-12 transition-all">
-        <div id="listings-container" class="row row-cols-xl-4 row-cols-lg-3 row-cols-md-2 row-cols-sm-1 mt-3">
+        <div id="listings-container" class="row row-cols-1 row-cols-sm-2 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 mt-3">
     <% if(allListings && allListings.length> 0) { %>
       <% for (let listing of allListings) { %>
         <div class="col mb-4">
@@ -322,6 +322,14 @@
 
                    mapSide.classList.remove("d-none", "col-12");
                    mapSide.classList.add("col-lg-5", "col-md-6");
+                   
+                   // On Mobile: Make map full screen if toggled
+                   if (window.innerWidth <= 768) {
+                       listingsSide.classList.add("d-none");
+                       mapSide.classList.replace("col-md-6", "col-12");
+                       mapSide.style.height = "calc(100vh - 150px)";
+                   }
+
                    fullMapToggle.innerHTML = '<i class="fa-solid fa-expand"></i>';
 
                    if(loadingHtml) loadingHtml.classList.add('d-none');

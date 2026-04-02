@@ -1,18 +1,35 @@
 <nav class="navbar navbar-expand-md sticky-top">
   <div class="container">
-    <a class="navbar-brand d-flex align-items-center" href="/listings" style="color: #ff385c; font-size: 1.5rem; font-weight: 700; text-decoration: none;">
+    <a class="navbar-brand d-none d-md-flex align-items-center" href="/listings" style="color: #ff385c; font-size: 1.5rem; font-weight: 700; text-decoration: none;">
       <i class="fa-solid fa-house-chimney-window me-2" style="font-size: 1.8rem;"></i>
-      <span class="d-none d-lg-inline" style="letter-spacing: -0.5px;">StayNest</span>
+      <span style="letter-spacing: -0.5px;">StayNest</span>
     </a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup">
+
+    <!-- Mobile Pill (Always Visible on Mobile) -->
+    <div
+      class="search-bar-pill-mobile d-md-none shadow shadow-sm-hover border rounded-pill py-2 px-3 d-flex align-items-center bg-white w-100 mt-2 mb-1"
+      onclick="openSearch('where')" style="cursor: pointer; min-height: 56px;">
+      <i class="fa-solid fa-magnifying-glass text-dark me-3"></i>
+      <div class="d-flex flex-column flex-grow-1">
+        <span class="fw-bold small lh-1">Anywhere</span>
+        <span class="text-muted small" style="font-size: 0.70rem; letter-spacing: 0.01em;">Any week • Add guests</span>
+      </div>
+      <div class="ms-auto border-start ps-3 py-1">
+         <i class="fa-solid fa-sliders text-dark opacity-75"></i>
+      </div>
+    </div>
+
+
+    <button class="navbar-toggler d-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup">
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+
       <div class="navbar-nav ms-3">
         <a class="nav-link" href="/listings">Explore</a>
       </div>
 
-      <!-- Airbnb-style Search Pill (Mini) -->
+      <!-- Desktop Search Pill -->
       <div class="navbar-nav mx-auto">
         <div class="nav-item">
           <!-- Desktop Trigger (Mini Pill) -->
@@ -35,19 +52,9 @@
               <i class="fa-solid fa-magnifying-glass fa-xs"></i>
             </div>
           </div>
-
-          <!-- Mobile Pill -->
-          <div
-            class="search-bar-pill-mobile d-md-none shadow-sm border rounded-pill w-100 py-2 px-3 d-flex align-items-center gap-3 bg-white mt-2 mt-md-0"
-            onclick="openSearch('where')">
-            <i class="fa-solid fa-magnifying-glass text-dark"></i>
-            <div class="d-flex flex-column">
-              <span class="fw-bold small lh-1">Where to?</span>
-              <span class="text-muted small" style="font-size: 0.75rem;">Anywhere • Any week • Add guests</span>
-            </div>
-          </div>
         </div>
       </div>
+
 
       <div class="navbar-nav ms-auto align-items-center">
         <!-- Become a Host Button -->
@@ -122,22 +129,25 @@
           <input type="hidden" name="checkOut" id="input-checkOut">
           <!-- The Big Search Bar (Pixel Perfect 3-Section) -->
           <div
-            class="search-big-pill border shadow-sm d-flex align-items-center position-relative bg-light rounded-pill row mx-0 g-0"
-            style="height: 66px; overflow: visible;"> <!-- Overflow visible for popups -->
+            class="search-big-pill border shadow-sm d-flex flex-column flex-md-row align-items-center position-relative bg-light overflow-visible mx-0 g-0"
+            style="min-height: 66px; border-radius: 32px;"> <!-- Overflow visible for popups -->
 
-            <!-- Fluid Sliding Highlight Pill -->
-            <div id="search-highlight" class="position-absolute bg-white shadow-sm rounded-pill"
-              style="top: 0; bottom: 0; left: 0; width: 33.333%; transition: transform 0.35s cubic-bezier(0.2, 0, 0, 1), opacity 0.2s ease; z-index: 0; pointer-events: none; opacity: 0;">
+            <!-- Fluid Sliding Highlight Pill (Desktop only) -->
+            <div id="search-highlight" class="position-absolute bg-white shadow-sm rounded-pill d-none d-md-block"
+              style="top: 0; bottom: 0; left: 0; width: 33.3333%; transition: transform 0.35s cubic-bezier(0.2, 0, 0, 1), opacity 0.2s ease; z-index: 0; pointer-events: none; opacity: 0;">
             </div>
+
 
             <!-- 1. Where -->
             <div id="whereSection"
-              class="search-section col position-relative px-4 py-2 hover-bg-white rounded-pill-start cursor-pointer search-input-container h-100 d-flex flex-column justify-content-center">
+              class="search-section col-12 col-md-4 position-relative px-4 py-3 py-md-2 hover-bg-white cursor-pointer search-input-container d-flex flex-column justify-content-center">
+
               <label class="d-block fw-bold text-dark mb-0 lh-1"
                 style="font-size: 0.75rem; letter-spacing: 0.04em;">Where</label>
               <input type="text" name="q" id="whereInput" autocomplete="off"
                 class="form-control border-0 shadow-none p-0 text-dark bg-transparent text-truncate fw-bold mt-1"
                 placeholder="Search destinations" style="font-size: 1rem; color: #222;">
+
 
               <!-- SUGGESTIONS DROPDOWN (Filterable with Keyboard Navigation) -->
               <div class="search-suggestions search-popup position-absolute bg-white shadow-lg py-3 mt-3 start-0"
@@ -299,28 +309,28 @@
             </div>
 
             <!-- Divider -->
-            <div class="vertical-divider align-self-center disabled-on-hover"
+            <div class="vertical-divider align-self-center disabled-on-hover d-none d-md-block"
               style="width: 1px; height: 32px; background-color: #ddd;"></div>
 
             <!-- 2. When -->
             <div id="whenSection"
-              class="search-section col position-relative px-4 py-2 hover-bg-white cursor-pointer search-input-container h-100 d-flex flex-column justify-content-center">
+              class="search-section col-12 col-md-4 position-relative px-4 py-3 py-md-2 hover-bg-white cursor-pointer search-input-container d-flex flex-column justify-content-center">
+
               <label class="d-block fw-bold text-dark mb-0 lh-1"
                 style="font-size: 0.75rem; letter-spacing: 0.04em;">When</label>
               <input type="text" id="whenInput" name="dates"
                 class="form-control border-0 shadow-none p-0 text-muted bg-transparent text-truncate mt-1"
                 placeholder="Add dates" style="font-size: 0.9rem;" autocomplete="off">
-
-
             </div>
 
             <!-- Divider -->
-            <div class="vertical-divider align-self-center disabled-on-hover"
+            <div class="vertical-divider align-self-center disabled-on-hover d-none d-md-block"
               style="width: 1px; height: 32px; background-color: #ddd;"></div>
 
             <!-- 3. Who -->
             <div id="whoSection"
-              class="search-section col position-relative ps-4 pe-2 py-2 hover-bg-white rounded-pill-end cursor-pointer d-flex align-items-center justify-content-between search-input-container h-100">
+              class="search-section col-12 col-md-4 position-relative ps-4 pe-2 py-3 py-md-2 hover-bg-white cursor-pointer d-flex align-items-center justify-content-between search-input-container">
+
               <div class="d-flex flex-column justify-content-center">
                 <label class="d-block fw-bold text-dark mb-0 lh-1"
                   style="font-size: 0.75rem; letter-spacing: 0.04em;">Who</label>
@@ -427,11 +437,14 @@
               </div>
 
               <!-- Search Button -->
-              <button
-                class="btn btn-danger rounded-circle d-flex align-items-center justify-content-center shadow-md border-0 search-big-btn"
-                style="width: 48px; height: 48px; min-width: 48px; background-color: #FF385C;">
-                <i class="fa-solid fa-magnifying-glass text-white fa-lg"></i>
-              </button>
+              <div class="pe-2 py-2 w-100 w-md-auto">
+                <button
+                  class="btn btn-danger rounded-pill rounded-md-circle d-flex align-items-center justify-content-center shadow-md border-0 search-big-btn w-100 w-md-auto gap-2 px-4 px-md-0"
+                  style="min-width: 48px; height: 48px; background-color: #FF385C;">
+                  <i class="fa-solid fa-magnifying-glass text-white fa-lg"></i>
+                  <span class="d-md-none fw-bold text-white">Search</span>
+                </button>
+              </div>
             </div>
 
             <!-- DATE POPUP (Moved) -->

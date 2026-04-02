@@ -727,16 +727,15 @@
 
             window.addEventListener('scroll', function () {
                 const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-                const heroBottom = heroImage.offsetTop + heroImage.offsetHeight;
-
-                // Show bar when scrolled past hero image
-                if (scrollTop > heroBottom && !isBarVisible) {
+                
+                // Show bar after 200px scroll for better native feel
+                if (scrollTop > 200 && !isBarVisible) {
                     mobileBar.classList.add('visible');
                     document.body.classList.add('has-mobile-booking');
                     isBarVisible = true;
                 }
-                // Hide bar when scrolled back to top
-                else if (scrollTop <= heroBottom && isBarVisible) {
+                // Hide bar when scrolled back to top area
+                else if (scrollTop <= 150 && isBarVisible) {
                     mobileBar.classList.remove('visible');
                     document.body.classList.remove('has-mobile-booking');
                     isBarVisible = false;
