@@ -72,10 +72,12 @@ module.exports.index = async (req, res) => {
     if (sort === 'price_low') sortOption = { price: 1 };
     else if (sort === 'price_high') sortOption = { price: -1 };
 
-    const totalListings = await Listing.countDocuments(query);
-    const allListings = await Listing.find(query).sort(sortOption).skip(skip).limit(limit);
-    // Fetch all matching data for map (lighter query)
-    const allListingsMap = await Listing.find(query).select('title geometry price location image');
+    // Optimize with Promise.all and .lean() for faster DB execution
+    const [totalListings, allListings, allListingsMap] = await Promise.all([
+        Listing.countDocuments(query),
+        Listing.find(query).sort(sortOption).skip(skip).limit(limit).lean(),
+        Listing.find(query).select('title geometry price location image').lean()
+    ]);
     const totalPages = Math.ceil(totalListings / limit);
 
     if (allListings.length === 0 && page === 1 && !req.query.mode) {
