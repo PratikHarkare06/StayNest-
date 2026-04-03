@@ -12,8 +12,10 @@ const server = http.createServer(app);
 const { Server } = require("socket.io");
 const io = new Server(server);
 app.set('io', io); // Expose io for use in controllers
-const mongoose = require("mongoose");
+
 const path = require("path");
+app.use(express.static(path.join(__dirname, "public")));
+const mongoose = require("mongoose");
 const methodOverride = require("method-override");
 const ejsMate = require("ejs-mate");
 const listingRouter = require("./routes/listing.js");
@@ -66,10 +68,6 @@ app.engine("ejs", ejsMate);
 //   },
 //   crossOriginEmbedderPolicy: false,
 //   crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" }
-// }));
-
-app.use(express.static(path.join(__dirname, "/public")));
-
 // Create MongoDB session store
 const store = MongoStore.create({
   mongoUrl: process.env.ATLAS_URL,
