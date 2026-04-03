@@ -1,4 +1,4 @@
-const CACHE_NAME = 'staynest-v1';
+const CACHE_NAME = 'staynest-cache-v2';
 const ASSETS_TO_CACHE = [
   '/',
   '/listings',
