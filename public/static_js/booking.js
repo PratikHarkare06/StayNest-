@@ -21,8 +21,15 @@ if (pricePerNightElement && checkInInput && checkOutInput && totalPriceElement &
             const total = nights * listingPrice;
 
             totalNightsElement.innerText = nights;
-            totalPriceElement.innerText = total.toLocaleString('en-IN');
-            document.getElementById('totalPriceDisplay').innerText = total.toLocaleString('en-IN');
+
+            if (window.formatCurrency) {
+                totalPriceElement.innerHTML = window.formatCurrency(total);
+                document.getElementById('totalPriceDisplay').innerHTML = window.formatCurrency(total);
+            } else {
+                totalPriceElement.innerHTML = '&#8377;' + total.toLocaleString('en-IN');
+                document.getElementById('totalPriceDisplay').innerHTML = '&#8377;' + total.toLocaleString('en-IN');
+            }
+
             priceBreakdownElement.classList.remove('d-none');
         } else {
             priceBreakdownElement.classList.add('d-none');

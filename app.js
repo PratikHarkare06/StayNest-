@@ -17,8 +17,9 @@ const path = require("path");
 const fs = require("fs");
 
 // Determine the actual JS folder name on the server (case-sensitive Linux vs Mac)
-const jsFolderName = fs.existsSync(path.join(__dirname, "public", "static_js")) ? "static_js" 
-                   : fs.existsSync(path.join(__dirname, "public", "js")) ? "js"
+// Priority: js > static_js (so we always serve the most current files)
+const jsFolderName = fs.existsSync(path.join(__dirname, "public", "js")) ? "js"
+                   : fs.existsSync(path.join(__dirname, "public", "static_js")) ? "static_js" 
                    : "JS";
 console.log(`StayNest: Serving JS assets from public/${jsFolderName}`);
 
