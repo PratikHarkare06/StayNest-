@@ -14,20 +14,24 @@ const io = new Server(server);
 app.set('io', io); // Expose io for use in controllers
 
 const path = require("path");
+const fs = require("fs");
 
-// Serve current static_js files
-app.get("/static_js/:filename", (req, res) => {
-    const file = path.join(__dirname, "public", "static_js", req.params.filename);
-    res.sendFile(file, (err) => {
-        if (err) res.status(404).send("Not found");
-    });
-});
+// Determine the actual JS folder name on the server (case-sensitive Linux vs Mac)
+const jsFolderName = fs.existsSync(path.join(__dirname, "public", "static_js")) ? "static_js" 
+                   : fs.existsSync(path.join(__dirname, "public", "js")) ? "js"
+                   : "JS";
+console.log(`StayNest: Serving JS assets from public/${jsFolderName}`);
 
-// Backward compat: redirect old /js/ paths (from stale SW cache) to /static_js/
-app.get("/js/:filename", (req, res) => {
-    const file = path.join(__dirname, "public", "static_js", req.params.filename);
-    res.sendFile(file, (err) => {
-        if (err) res.status(404).send("Not found");
+// Serve JS files regardless of what the HTML requests (/js/, /static_js/, /JS/)
+["js", "static_js", "JS"].forEach(prefix => {
+    app.get(`/${prefix}/:filename`, (req, res) => {
+        const file = path.join(__dirname, "public", jsFolderName, req.params.filename);
+        res.sendFile(file, (err) => {
+            if (err) {
+                console.error(`JS File not found: ${file}`);
+                res.status(404).send("Not found");
+            }
+        });
     });
 });
 
