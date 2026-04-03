@@ -40,7 +40,16 @@
         </div>
       </div>
 
+      <!-- Map Toggle Button -->
+      <button id="mapToggleBtn"
+        class="btn btn-outline-dark rounded-pill py-2 px-3 fw-bold d-flex align-items-center gap-2"
+        style="border: 1px solid #ddd; font-size: 0.9rem; white-space: nowrap;"
+        onclick="toggleMapView()">
+        <i class="fa-solid fa-map me-1"></i> Show map
+      </button>
+
     </div>
+
 
     <button class="btn btn-outline-dark ms-2 d-md-none rounded-circle p-2" type="button" data-bs-toggle="modal" data-bs-target="#filtersModal" style="width: 40px; height: 40px;">
       <i class="fa-solid fa-sliders mx-auto"></i>
@@ -130,15 +139,17 @@
     <% } %>
         </div>
 
-        <!-- Full-width Map Section (Hidden as requested) -->
-        <div class="col-12 mt-5 pt-5 border-top mb-5 d-none">
-            <h4 class="fw-bold mb-4">Where you'll be</h4>
+    </div>
+
+        <!-- Full-width Map Section -->
+        <div id="map-section" class="col-12 mt-4 mb-5" style="display:none;">
             <div id="cluster-map" class="rounded-4 overflow-hidden border shadow-sm" style="height: 500px; width: 100%;"></div>
         </div>
 
       </div>
     </div>
   </div>
+
 
   <!-- Filter Modal (Moved outside layout) -->
   <div class="modal fade" id="filtersModal" tabindex="-1" aria-hidden="true">

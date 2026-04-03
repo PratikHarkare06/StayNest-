@@ -1,18 +1,49 @@
-// Initialize map (Center of India, zoom 4 as default)
-const map = window.map = L.map('cluster-map').setView([20.5937, 78.9629], 4);
+// ── Cluster Map — Lazy initialized (only when map panel is visible) ──
+let mapInstance = null;     // Leaflet map instance
+let markersLayer = null;    // MarkerClusterGroup
+let mapReady    = false;    // Has the map been fully initialised?
 
-// OSM Tiles
-L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-}).addTo(map);
+/**
+ * Initialise Leaflet map inside #cluster-map.
+ * Safe to call multiple times — skips if already initialised.
+ */
+function initClusterMap() {
+    if (mapReady) return;
 
-const markers = L.markerClusterGroup();
-let mapProcessing = false;
+    const container = document.getElementById('cluster-map');
+    if (!container) return;
 
-// Function to render markers from a list of listings
+    // Centre of India, zoom 4
+    mapInstance = L.map('cluster-map').setView([20.5937, 78.9629], 4);
+
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(mapInstance);
+
+    markersLayer = L.markerClusterGroup();
+    mapReady = true;
+
+    // Render markers from page data
+    if (typeof allListingsMap !== 'undefined' && allListingsMap.length > 0) {
+        renderMarkers(allListingsMap);
+    }
+
+    // Sync sidebar when panning/zooming (only while map is open)
+    mapInstance.on('moveend', () => {
+        const section = document.getElementById('map-section');
+        if (section && section.style.display !== 'none') {
+            syncListingsWithMap();
+        }
+    });
+
+    // IMPORTANT: tell Leaflet to recalculate layout after the div becomes visible
+    setTimeout(() => mapInstance.invalidateSize(), 100);
+}
+
+/** Render markers from a list of listing objects */
 function renderMarkers(listings) {
-    markers.clearLayers();
-    if (!listings || listings.length === 0) return;
+    if (!markersLayer) return;
+    markersLayer.clearLayers();
 
     listings.forEach(listing => {
         if (listing.geometry?.coordinates?.length === 2) {
@@ -23,99 +54,59 @@ function renderMarkers(listings) {
                     <img src="${listing.image?.url || '/images/placeholder.jpg'}" class="w-100 rounded" style="height:100px; object-fit:cover">
                   </div>
                   <h6 class="mb-1 fw-bold"><a href="/listings/${listing._id}" class="text-decoration-none text-dark">${listing.title}</a></h6>
-                  <p class="mb-0 fw-bold small">&#8377; ${listing.price.toLocaleString("en-IN")}</p>
+                  <p class="mb-0 fw-bold small">&#8377; ${listing.price.toLocaleString('en-IN')}</p>
                 </div>
             `;
             const marker = L.marker([lat, lng]);
             marker.bindPopup(popupContent);
-            markers.addLayer(marker);
+            markersLayer.addLayer(marker);
         }
     });
-    map.addLayer(markers);
+
+    mapInstance.addLayer(markersLayer);
 }
 
-// Function to sync listings in the sidebar with the current map viewport
+/** Fetch listings within the current map viewport and update the sidebar */
 async function syncListingsWithMap() {
-    if (mapProcessing) return;
-    
-    const bounds = map.getBounds();
+    if (!mapInstance) return;
+
+    const bounds = mapInstance.getBounds();
     const sw = bounds.getSouthWest();
     const ne = bounds.getNorthEast();
-    
-    // Get current category from URL if present
+
     const urlParams = new URLSearchParams(window.location.search);
-    const category = urlParams.get('category') || 'All';
-    
-    mapProcessing = true;
-    
+    const category  = urlParams.get('category') || 'All';
+
     try {
-        const res = await fetch(`/listings/api/map-bounds?sw=${sw.lat},${sw.lng}&ne=${ne.lat},${ne.lng}&category=${category}`);
+        const res      = await fetch(`/listings/api/map-bounds?sw=${sw.lat},${sw.lng}&ne=${ne.lat},${ne.lng}&category=${category}`);
         const listings = await res.json();
-        
-        // Update Markers
         renderMarkers(listings);
-        
-        // Optional: Update sidebar if split view is active
-        const listingsSide = document.getElementById('listings-side');
-        if (listingsSide && !listingsSide.classList.contains('col-12')) {
-            updateSidebarList(listings);
-        }
     } catch (err) {
-        console.error("Map Sync Failed:", err);
-    } finally {
-        mapProcessing = false;
+        console.error('Map Sync Failed:', err);
     }
 }
 
-// Update the listing grid dynamically
-function updateSidebarList(listings) {
-    const listContainer = document.getElementById('listings-container');
-    if (!listContainer) return;
-    
-    if (listings.length === 0) {
-        listContainer.innerHTML = `
-            <div class="col-12 text-center py-5">
-                <i class="fa-solid fa-map-location-dot fa-3x text-muted opacity-25 mb-3"></i>
-                <h5 class="fw-bold text-muted">No homes in this area</h5>
-                <p class="text-muted small">Try zooming out or moving the map</p>
-            </div>
-        `;
-        return;
+/** Toggle the map panel open / closed. Called by the button in index.ejs */
+window.toggleMapView = function() {
+    const section = document.getElementById('map-section');
+    const btn     = document.getElementById('mapToggleBtn');
+    if (!section) return;
+
+    const isHidden = section.style.display === 'none' || section.style.display === '';
+
+    if (isHidden) {
+        section.style.display = 'block';
+        if (btn) btn.innerHTML = '<i class="fa-solid fa-xmark me-1"></i> Hide map';
+        // Lazy init on first open, or just recalculate size on subsequent opens
+        if (!mapReady) {
+            initClusterMap();
+        } else {
+            setTimeout(() => mapInstance.invalidateSize(), 100);
+        }
+        // Scroll into view smoothly
+        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+        section.style.display = 'none';
+        if (btn) btn.innerHTML = '<i class="fa-solid fa-map me-1"></i> Show map';
     }
-
-    const html = listings.map(l => `
-        <div class="col mb-4 listing-fade-in shadow-hover">
-          <div class="card h-100 listing-card border-0 position-relative">
-            <div class="position-relative overflow-hidden rounded-4">
-              <img src="${l.image?.url || '/images/placeholder.jpg'}" class="card-img-top" alt="${l.title}" style="height: 18rem; object-fit: cover" />
-            </div>
-            <div class="card-body px-1 pt-3">
-              <a href="/listings/${l._id}" class="text-decoration-none text-dark stretched-link">
-                <h6 class="fw-bold mb-0 text-truncate" style="max-width: 80%;">${l.title}</h6>
-                <p class="text-muted small mb-1">${l.location}</p>
-                <p class="card-text mb-0">
-                  <span class="fw-bold text-dark fs-6">&#8377; ${l.price.toLocaleString("en-IN")}</span>
-                  <span class="text-muted fw-normal">night</span>
-                </p>
-              </a>
-            </div>
-          </div>
-        </div>
-    `).join('');
-    
-    listContainer.innerHTML = html;
-}
-
-// Initial Render
-if (typeof allListingsMap !== 'undefined' && allListingsMap.length > 0) {
-    renderMarkers(allListingsMap);
-}
-
-// Listen for Map Changes
-map.on('moveend', () => {
-    // Only sync if map split view is open
-    const mapToggle = document.getElementById("flexSwitchCheckDefaultMap");
-    if (mapToggle && mapToggle.checked) {
-        syncListingsWithMap();
-    }
-});
+};
