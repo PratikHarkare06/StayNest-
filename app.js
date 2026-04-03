@@ -141,7 +141,7 @@ app.use("/admin", adminRouter);
 app.use("/messages", messageRouter);
 
 app.get("/", (req, res) => {
-  res.send("Hi, I am root");
+  res.redirect("/listings");
 });
 
 // Toast demo page (for testing)
