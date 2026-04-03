@@ -677,7 +677,7 @@
                         <div class="card shadow-lg border-0 rounded-4">
                             <div class="p-4 bg-white">
                                 <div class="mb-1">
-                                    <span class="fw-bold fs-3">&#8377;<%= listing.price.toLocaleString("en-IN") %></span>
+                                    <span class="fw-bold fs-3 breakdown-price" data-base-price="<%= listing.price %>">&#8377;<%= listing.price.toLocaleString("en-IN") %></span>
                                     <span class="text-muted ms-1">/ night</span>
                                 </div>
                                 <% if(avgRatingTop) { %>
@@ -835,9 +835,9 @@
 
                                     <div id="priceBreakdown" class="d-none mb-3">
                                         <div class="d-flex justify-content-between text-muted mb-2">
-                                            <span>&#8377;<%= listing.price.toLocaleString("en-IN") %> x <span
+                                            <span><span class="breakdown-price" data-base-price="<%= listing.price %>">&#8377;<%= listing.price.toLocaleString("en-IN") %></span> x <span
                                                         id="totalNights">0</span> nights</span>
-                                            <span>&#8377;<span id="totalPrice">0</span></span>
+                                            <span id="totalPrice">&#8377;0</span>
                                         </div>
                                         <div class="d-flex justify-content-between text-muted mb-3">
                                             <span>Service fee</span>
@@ -846,7 +846,7 @@
                                         <hr>
                                         <div class="d-flex justify-content-between fw-bold fs-5">
                                             <span>Total</span>
-                                            <span>&#8377;<span id="totalPriceDisplay"></span></span>
+                                            <span id="totalPriceDisplay"></span>
                                         </div>
                                     </div>
 
@@ -903,8 +903,8 @@
         </div>
 
         <!-- Full-Width Map Section (Airbnb Style) -->
-        <hr class="my-5 d-none">
-        <div class="mb-5 d-none">
+        <hr class="my-5">
+        <div class="mb-5">
             <h3 class="fw-bold mb-4">Where you'll be</h3>
             <p class="text-muted mb-4"><%= listing.location %>, <%= listing.country %></p>
             <div id="map" class="rounded-4 shadow-sm border overflow-hidden"

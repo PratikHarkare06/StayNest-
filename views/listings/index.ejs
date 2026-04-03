@@ -319,12 +319,12 @@
                   if (taxSwitch.checked) {
                     // Show total price
                     let totalPrice = basePrice * 1.18;
-                    priceElements[i].innerHTML = "&#8377; " + totalPrice.toLocaleString("en-IN", { maximumFractionDigits: 0 });
+                    priceElements[i].innerHTML = window.formatCurrency ? window.formatCurrency(totalPrice) : "&#8377; " + totalPrice.toLocaleString("en-IN", { maximumFractionDigits: 0 });
                     taxInfo[i].style.display = "inline";
                     taxInfo[i].innerText = " incl. taxes";
                   } else {
                     // Show base price
-                    priceElements[i].innerHTML = "&#8377; " + basePrice.toLocaleString("en-IN");
+                    priceElements[i].innerHTML = window.formatCurrency ? window.formatCurrency(basePrice) : "&#8377; " + basePrice.toLocaleString("en-IN");
                     taxInfo[i].style.display = "none";
                   }
                 }
