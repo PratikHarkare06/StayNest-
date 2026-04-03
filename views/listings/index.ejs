@@ -40,12 +40,6 @@
         </div>
       </div>
 
-      <div class="tax-toggle">
-        <div class="form-check form-switch form-check-reverse p-0 m-0 d-flex align-items-center justify-content-between w-100">
-          <label class="form-check-label fs-6 fw-semibold me-2 cursor-pointer" for="flexSwitchCheckDefaultMap">Map</label>
-          <input class="form-check-input m-0 cursor-pointer" type="checkbox" role="switch" id="flexSwitchCheckDefaultMap" autocomplete="off" style="height: 1.5rem; width: 2.5rem;">
-        </div>
-      </div>
     </div>
 
     <button class="btn btn-outline-dark ms-2 d-md-none rounded-circle p-2" type="button" data-bs-toggle="modal" data-bs-target="#filtersModal" style="width: 40px; height: 40px;">
@@ -253,10 +247,7 @@
     </nav>
     <% } %>
 
-      <!-- Mobile Floating Map Button -->
-      <button id="floatingMapBtn" class="floating-map-btn" onclick="toggleMap()">
-        <i class="fa-solid fa-map"></i>&nbsp;Map
-      </button>
+
 
       <% if (typeof totalPages !=='undefined' && totalPages> 1) { %>
         <!-- Pagination ... (Keep existing pagination if possible or just include it if I'm replacing the whole block) -->
