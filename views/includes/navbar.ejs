@@ -898,57 +898,54 @@
 
     // References to sections
     const whereSection = document.getElementById('whereSection');
-    const whenSection = document.getElementById('whenSection');
-    const whoSection = document.getElementById('whoSection');
-    const highlight = document.getElementById('search-highlight');
-    const dividers = document.querySelectorAll('.vertical-divider');
+    const whenSection  = document.getElementById('whenSection');
+    const whoSection   = document.getElementById('whoSection');
+    const highlight    = document.getElementById('search-highlight');
+    const dividers     = document.querySelectorAll('.vertical-divider');
 
-    // Reset styles for unified pill look (Undo previous isolation logic)
+    // Reset styles for unified pill look
     [whereSection, whenSection, whoSection].forEach(el => {
       if (el) {
-        el.style.display = 'flex'; // Ensure all visible
-        el.style.borderRadius = '0'; // Reset radius
-        el.style.backgroundColor = 'transparent'; // Transparent bg for bubble under
+        el.style.display = 'flex';
+        el.style.borderRadius = '0';
+        el.style.backgroundColor = 'transparent';
         el.classList.remove('search-field-focused');
-        el.classList.remove('animate-section'); // Remove previous animation
-        // Add relative z-index so text sits on top of bubble
+        el.classList.remove('animate-section');
         el.style.position = 'relative';
         el.style.zIndex = '5';
       }
     });
-    // Show dividers again
     dividers.forEach(el => el.style.display = 'block');
-    // First and last radius fix
-    if (whereSection) whereSection.style.borderTopLeftRadius = '32px';
-    if (whereSection) whereSection.style.borderBottomLeftRadius = '32px';
-    if (whoSection) whoSection.style.borderTopRightRadius = '32px';
-    if (whoSection) whoSection.style.borderBottomRightRadius = '32px';
+    if (whereSection) { whereSection.style.borderTopLeftRadius = '32px'; whereSection.style.borderBottomLeftRadius = '32px'; }
+    if (whoSection)   { whoSection.style.borderTopRightRadius  = '32px'; whoSection.style.borderBottomRightRadius  = '32px'; }
 
-
-    if (highlight) {
-      highlight.style.opacity = '1';
+    // Helper: measure & position the highlight pill using getBoundingClientRect
+    // (must run AFTER the modal is in the DOM and visible)
+    function positionHighlight() {
+      if (!highlight) return;
       let targetEl = whereSection;
       if (type === 'when') targetEl = whenSection;
       else if (type === 'who') targetEl = whoSection;
+      if (!targetEl) return;
 
-      if (targetEl) {
-         highlight.style.width = `${targetEl.offsetWidth}px`;
-         highlight.style.transform = `translateX(${targetEl.offsetLeft}px)`;
-      }
+      const pillEl = document.querySelector('.search-big-pill');
+      if (!pillEl) return;
+
+      const pillRect   = pillEl.getBoundingClientRect();
+      const targetRect = targetEl.getBoundingClientRect();
+
+      highlight.style.opacity   = '1';
+      highlight.style.width     = `${targetRect.width}px`;
+      highlight.style.transform = `translateX(${targetRect.left - pillRect.left}px)`;
     }
 
-    // Clear any existing focus/popups
+    // Clear existing popups
     document.querySelectorAll('.search-popup').forEach(el => el.classList.remove('active'));
 
     const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-    modal.show();
 
-    // Render Calendar if needed
-    renderCalendar();
-
-    // Popup Trigger Logic
+    // Popup trigger (date/guest popups)
     const triggerPopup = () => {
-      // Slightly delayed to let slide settle
       setTimeout(() => {
         if (type === 'where') {
           document.querySelector('.search-suggestions')?.classList.add('active');
@@ -961,13 +958,23 @@
       }, 200);
     };
 
-    // If modal is not yet visible, wait for event. If visible, run immediately.
-    if (!modalEl.classList.contains('show')) {
-      modalEl.addEventListener('shown.bs.modal', triggerPopup, { once: true });
-    } else {
+    if (modalEl.classList.contains('show')) {
+      // Modal already visible — measure immediately
+      positionHighlight();
       triggerPopup();
+    } else {
+      // Modal not yet visible — wait for it to fully appear, then measure
+      modalEl.addEventListener('shown.bs.modal', () => {
+        positionHighlight();
+        triggerPopup();
+      }, { once: true });
+      modal.show();
     }
+
+    // Render Calendar
+    renderCalendar();
   }
+
   function switchTab(tabName) {
     // Reset all tabs
     document.querySelectorAll('.date-tab').forEach(btn => {
