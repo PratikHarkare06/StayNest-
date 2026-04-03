@@ -11,7 +11,8 @@ module.exports.index = async (req, res) => {
     const limit = 9;
     const skip = (page - 1) * limit;
 
-    let query = { status: "Active" }; // Default: Only active listings
+    let query = { $or: [{ status: "Active" }, { status: { $exists: false } }] }; // Show Active + legacy listings
+
 
     // 1. Algorithmic Availability Filter (Feature 3)
     if (checkIn && checkOut) {
