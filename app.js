@@ -14,6 +14,10 @@ const io = new Server(server);
 app.set('io', io); // Expose io for use in controllers
 
 const path = require("path");
+// Explicitly serve JS files to bypass static-path casing bugs on Render
+app.get("/js/:filename", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "js", req.params.filename));
+});
 app.use(express.static(path.join(__dirname, "public")));
 const mongoose = require("mongoose");
 const methodOverride = require("method-override");
