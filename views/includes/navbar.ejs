@@ -63,20 +63,21 @@
           Become a host
         </a>
 
+        <!-- Currency Switcher — visible to ALL users -->
+        <div class="dropdown me-2">
+          <button id="currencyDropdownBtn" class="btn btn-sm btn-light rounded-pill border-0 px-3 fw-bold shadow-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+            <i class="fa-solid fa-indian-rupee-sign me-1"></i> INR
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg rounded-4">
+            <li><a class="dropdown-item currency-option" data-currency="INR" href="#" onclick="event.preventDefault(); setCurrency('INR');"><i class="fa-solid fa-indian-rupee-sign me-2 small"></i> Indian Rupee (₹)</a></li>
+            <li><a class="dropdown-item currency-option" data-currency="USD" href="#" onclick="event.preventDefault(); setCurrency('USD');"><i class="fa-solid fa-dollar-sign me-2 small"></i> US Dollar ($)</a></li>
+            <li><a class="dropdown-item currency-option" data-currency="EUR" href="#" onclick="event.preventDefault(); setCurrency('EUR');"><i class="fa-solid fa-euro-sign me-2 small"></i> Euro (€)</a></li>
+          </ul>
+        </div>
+
         <% if(!currUser){ %>
           <a class="nav-link fw-bold" href="/login">Sign up / Log in</a>
-          <% } else { %>
-            <div class="dropdown me-2">
-              <button id="currencyDropdownBtn" class="btn btn-sm btn-light rounded-pill border-0 px-3 fw-bold shadow-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                <i class="fa-solid fa-indian-rupee-sign me-1"></i> INR
-              </button>
-              <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg rounded-4">
-                <li><a class="dropdown-item currency-option" data-currency="INR" href="#" onclick="event.preventDefault(); setCurrency('INR');"><i class="fa-solid fa-indian-rupee-sign me-2 small"></i> Indian Rupee (₹)</a></li>
-                <li><a class="dropdown-item currency-option" data-currency="USD" href="#" onclick="event.preventDefault(); setCurrency('USD');"><i class="fa-solid fa-dollar-sign me-2 small"></i> US Dollar ($)</a></li>
-                <li><a class="dropdown-item currency-option" data-currency="EUR" href="#" onclick="event.preventDefault(); setCurrency('EUR');"><i class="fa-solid fa-euro-sign me-2 small"></i> Euro (€)</a></li>
-              </ul>
-            </div>
-
+        <% } else { %>
             <div class="dropdown">
               <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button"
                 data-bs-toggle="dropdown" aria-expanded="false">
@@ -117,6 +118,7 @@
               </ul>
             </div>
             <% } %>
+
       </div>
     </div>
   </div>
