@@ -273,7 +273,7 @@ document.addEventListener("DOMContentLoaded", () => {
   socket.emit("register_user", ME);
 
   // ── Mark partner's messages as read immediately ─────────────────────────────
-  socket.emit("mark_read", { senderId: PARTNER, receiverId: ME });
+  socket.emit("mark_read", { senderId: PARTNER, recipientId: ME });
 
   // ── Elements ────────────────────────────────────────────────────────────────
   const chatBox        = document.getElementById("chat-box");
@@ -313,7 +313,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function sendMessage() {
     const txt = chatInput.value.trim();
     if (!txt) return;
-    socket.emit("send_message", { senderId: ME, receiverId: PARTNER, content: txt });
+    socket.emit("send_message", { senderId: ME, recipientId: PARTNER, content: txt });
     chatInput.value = "";
     chatInput.focus();
     stopTyping();
@@ -327,8 +327,8 @@ document.addEventListener("DOMContentLoaded", () => {
   // ── Receive messages ────────────────────────────────────────────────────────
   socket.on("new_message", (msg) => {
     const inThisChat =
-      (msg.sender._id === PARTNER && msg.receiver === ME) ||
-      (msg.sender._id === ME      && msg.receiver === PARTNER);
+      (msg.sender._id === PARTNER && msg.recipient === ME) ||
+      (msg.sender._id === ME      && msg.recipient === PARTNER);
 
     if (!inThisChat) return;
 
@@ -338,7 +338,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // If I received this, mark it read immediately
     if (!isMe) {
-      socket.emit("mark_read", { senderId: PARTNER, receiverId: ME });
+      socket.emit("mark_read", { senderId: PARTNER, recipientId: ME });
 
       // Update navbar unread badge
       const badge = document.getElementById("msg-unread-badge");
@@ -353,7 +353,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function startTyping() {
     if (!isTyping) {
       isTyping = true;
-      socket.emit("typing_start", { senderId: ME, receiverId: PARTNER });
+      socket.emit("typing_start", { senderId: ME, recipientId: PARTNER });
     }
     clearTimeout(typingTimer);
     typingTimer = setTimeout(stopTyping, 2000);
@@ -362,7 +362,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function stopTyping() {
     if (isTyping) {
       isTyping = false;
-      socket.emit("typing_stop", { senderId: ME, receiverId: PARTNER });
+      socket.emit("typing_stop", { senderId: ME, recipientId: PARTNER });
     }
     clearTimeout(typingTimer);
   }
