@@ -146,10 +146,7 @@
             class="search-big-pill border shadow-sm d-flex flex-column flex-md-row align-items-center position-relative bg-light overflow-visible mx-0 g-0"
             style="min-height: 66px; border-radius: 32px;"> <!-- Overflow visible for popups -->
 
-            <!-- Fluid Sliding Highlight Pill (Desktop only) -->
-            <div id="search-highlight" class="position-absolute bg-white shadow-sm rounded-pill d-none d-md-block"
-              style="top: 0; bottom: 0; left: 0; width: 33.3333%; transition: transform 0.35s cubic-bezier(0.2, 0, 0, 1), opacity 0.2s ease; z-index: 0; pointer-events: none; opacity: 0;">
-            </div>
+            <!-- No floating pill — each section owns its own active state (Airbnb pattern) -->
 
 
             <!-- 1. Where -->
@@ -900,51 +897,22 @@
     const whereSection = document.getElementById('whereSection');
     const whenSection  = document.getElementById('whenSection');
     const whoSection   = document.getElementById('whoSection');
-    const highlight    = document.getElementById('search-highlight');
-    const dividers     = document.querySelectorAll('.vertical-divider');
+    const sections = [whereSection, whenSection, whoSection];
 
-    // Reset styles for unified pill look
-    [whereSection, whenSection, whoSection].forEach(el => {
-      if (el) {
-        el.style.display = 'flex';
-        el.style.borderRadius = '0';
-        el.style.backgroundColor = 'transparent';
-        el.classList.remove('search-field-focused');
-        el.classList.remove('animate-section');
-        el.style.position = 'relative';
-        el.style.zIndex = '5';
-      }
-    });
-    dividers.forEach(el => el.style.display = 'block');
-    if (whereSection) { whereSection.style.borderTopLeftRadius = '32px'; whereSection.style.borderBottomLeftRadius = '32px'; }
-    if (whoSection)   { whoSection.style.borderTopRightRadius  = '32px'; whoSection.style.borderBottomRightRadius  = '32px'; }
+    // ── Airbnb pattern: give each section its own active background ──
+    // Remove active from all first
+    sections.forEach(el => { if (el) el.classList.remove('search-section-active'); });
 
-    // Helper: measure & position the highlight pill using getBoundingClientRect
-    // (must run AFTER the modal is in the DOM and visible)
-    function positionHighlight() {
-      if (!highlight) return;
-      let targetEl = whereSection;
-      if (type === 'when') targetEl = whenSection;
-      else if (type === 'who') targetEl = whoSection;
-      if (!targetEl) return;
-
-      const pillEl = document.querySelector('.search-big-pill');
-      if (!pillEl) return;
-
-      const pillRect   = pillEl.getBoundingClientRect();
-      const targetRect = targetEl.getBoundingClientRect();
-
-      highlight.style.opacity   = '1';
-      highlight.style.width     = `${targetRect.width}px`;
-      highlight.style.transform = `translateX(${targetRect.left - pillRect.left}px)`;
-    }
+    // Apply active to the clicked section
+    const activeSection = type === 'when' ? whenSection : type === 'who' ? whoSection : whereSection;
+    if (activeSection) activeSection.classList.add('search-section-active');
 
     // Clear existing popups
     document.querySelectorAll('.search-popup').forEach(el => el.classList.remove('active'));
 
     const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
 
-    // Popup trigger (date/guest popups)
+    // Popup trigger
     const triggerPopup = () => {
       setTimeout(() => {
         if (type === 'where') {
@@ -959,15 +927,9 @@
     };
 
     if (modalEl.classList.contains('show')) {
-      // Modal already visible — measure immediately
-      positionHighlight();
       triggerPopup();
     } else {
-      // Modal not yet visible — wait for it to fully appear, then measure
-      modalEl.addEventListener('shown.bs.modal', () => {
-        positionHighlight();
-        triggerPopup();
-      }, { once: true });
+      modalEl.addEventListener('shown.bs.modal', triggerPopup, { once: true });
       modal.show();
     }
 
@@ -1227,3 +1189,31 @@
   window.updateDialUI = updateDialUI;
   window.updateFlexibleInput = updateFlexibleInput;
 </script>
+
+<style>
+  /* Airbnb-style: active section gets its own white pill background */
+  .search-section {
+    transition: background-color 0.2s ease, box-shadow 0.2s ease, border-radius 0.2s ease;
+    border-radius: 32px;
+  }
+  .search-section-active {
+    background-color: #ffffff !important;
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.12) !important;
+    border-radius: 32px !important;
+    z-index: 2 !important;
+  }
+  /* Hide vertical dividers adjacent to active section */
+  .search-section-active + .vertical-divider,
+  .vertical-divider:has(+ .search-section-active) {
+    opacity: 0;
+  }
+  /* When no section active, dividers are visible */
+  .vertical-divider {
+    transition: opacity 0.2s ease;
+  }
+  /* When section clicked, make input text dark */
+  .search-section-active input,
+  .search-section-active label {
+    color: #222 !important;
+  }
+</style>

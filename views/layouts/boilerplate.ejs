@@ -106,6 +106,59 @@
       <script src="/JS/wishlist.js"></script>
       <script src="/JS/script.js"></script>
       <script src="/JS/currency.js"></script>
+      <script>
+        // Inline currency fallback — runs if currency.js fails to load or hasn't run yet
+        if (typeof window.setCurrency === 'undefined') {
+          (function() {
+            var rates = {
+              'INR': { rate: 1,     symbol: '&#8377;', locale: 'en-IN', name: 'INR' },
+              'USD': { rate: 0.012, symbol: '$',       locale: 'en-US', name: 'USD' },
+              'EUR': { rate: 0.011, symbol: '&euro;',  locale: 'en-IE', name: 'EUR' }
+            };
+            var current = localStorage.getItem('staynest_currency') || 'INR';
+
+            window.formatCurrency = function(inrAmt) {
+              var c = rates[current];
+              var v = inrAmt * c.rate;
+              return c.symbol + ' ' + v.toLocaleString(c.locale, {
+                maximumFractionDigits: current === 'INR' ? 0 : 2,
+                minimumFractionDigits: current === 'INR' ? 0 : 2
+              });
+            };
+
+            function updatePrices() {
+              // listing cards
+              document.querySelectorAll('.listing-price').forEach(function(el) {
+                var p = parseFloat(el.getAttribute('data-base-price'));
+                var tax = document.getElementById('flexSwitchCheckDefault');
+                if (tax && tax.checked) p *= 1.18;
+                if (!isNaN(p)) el.innerHTML = window.formatCurrency(p);
+              });
+              // show.ejs breakdown
+              document.querySelectorAll('.breakdown-price').forEach(function(el) {
+                var p = parseFloat(el.getAttribute('data-base-price'));
+                if (!isNaN(p)) el.innerHTML = window.formatCurrency(p);
+              });
+              // navbar button
+              var btn = document.getElementById('currencyDropdownBtn');
+              if (btn) {
+                var icons = {INR:'fa-indian-rupee-sign', USD:'fa-dollar-sign', EUR:'fa-euro-sign'};
+                btn.innerHTML = '<i class="fa-solid ' + icons[current] + ' me-1"></i> ' + rates[current].name;
+              }
+              // mark active item
+              document.querySelectorAll('.currency-option').forEach(function(el) {
+                el.dataset.currency === current ? el.classList.add('active') : el.classList.remove('active');
+              });
+            }
+
+            window.setCurrency = function(code) {
+              if (rates[code]) { current = code; localStorage.setItem('staynest_currency', code); updatePrices(); }
+            };
+
+            document.addEventListener('DOMContentLoaded', updatePrices);
+          })();
+        }
+      </script>
 
       <!-- Global Real-Time Socket Client -->
       <% if(currUser) { %>
