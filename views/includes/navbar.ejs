@@ -925,17 +925,16 @@
     if (whoSection) whoSection.style.borderBottomRightRadius = '32px';
 
 
-    // Calculate Position for Sliding Highlight
-    let activeIndex = 0;
-    if (type === 'where') activeIndex = 0;
-    else if (type === 'when') activeIndex = 1;
-    else if (type === 'who') activeIndex = 2;
-
     if (highlight) {
       highlight.style.opacity = '1';
-      highlight.style.width = '33.33%'; // Assuming equal width for simplicity or calc
-      // Ideally calculated based on offsetWidth of target, but for now fixed % works if flex-1
-      highlight.style.transform = `translateX(${activeIndex * 100}%)`;
+      let targetEl = whereSection;
+      if (type === 'when') targetEl = whenSection;
+      else if (type === 'who') targetEl = whoSection;
+
+      if (targetEl) {
+         highlight.style.width = `${targetEl.offsetWidth}px`;
+         highlight.style.transform = `translateX(${targetEl.offsetLeft}px)`;
+      }
     }
 
     // Clear any existing focus/popups
