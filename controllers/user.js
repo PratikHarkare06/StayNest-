@@ -194,9 +194,36 @@ module.exports.renderDashboard = async (req, res) => {
         const hostBookings = await Booking.find({
             listing: { $in: listingIds },
             status: { $ne: 'Cancelled' }
-        });
+        }).populate('user');
 
-        res.render("users/dashboard.ejs", { user, myListings, myBookings, hostBookings });
+        let hostStats = undefined;
+        if (myListings.length > 0) {
+            const currentYear = new Date().getFullYear();
+            const earningsByMonth = new Array(12).fill(0);
+            const bookingsByMonth = new Array(12).fill(0);
+            
+            let totalEarnings = 0;
+            
+            hostBookings.forEach(booking => {
+                totalEarnings += booking.totalPrice;
+                const date = new Date(booking.createdAt);
+                if(date.getFullYear() === currentYear) {
+                    const month = date.getMonth();
+                    earningsByMonth[month] += booking.totalPrice;
+                    bookingsByMonth[month]++;
+                }
+            });
+
+            hostStats = {
+                totalEarnings,
+                totalBookings: hostBookings.length,
+                avgRating: 0, // Placeholder, can be calculated from myListings reviews
+                earningsByMonth,
+                bookingsByMonth
+            };
+        }
+
+        res.render("users/dashboard.ejs", { user, myListings, myBookings, hostBookings, hostStats });
     } catch (e) {
         console.error(e);
         req.flash("error", "Could not load dashboard data.");
