@@ -22,6 +22,7 @@
     "@mapbox/mapbox-sdk": "^0.16.2",
     "@maptiler/client": "^2.6.0",
     "cloudinary": "^1.41.3",
+    "compression": "^1.8.1",
     "connect-flash": "^0.1.1",
     "connect-mongo": "^6.0.0",
     "cookie-parser": "^1.4.7",

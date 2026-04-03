@@ -15,6 +15,10 @@ app.set('io', io); // Expose io for use in controllers
 
 const path = require("path");
 const fs = require("fs");
+const compression = require("compression");
+
+// Enable GZIP compression to drastically reduce network payload sizes
+app.use(compression());
 
 // Determine the actual JS folder name on the server (case-sensitive Linux vs Mac)
 // Priority: js > static_js (so we always serve the most current files)
