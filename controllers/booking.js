@@ -142,7 +142,7 @@ module.exports.createBooking = async (req, res) => {
         req.flash("success", `Payment successful! Your stay at ${listing.title} is confirmed.`);
         
         // Redirect directly to the user's dashboard after successful booking
-        res.redirect("/users/dashboard");
+        res.redirect("/dashboard");
 
     } catch (e) {
         console.error("Booking Error:", e);
