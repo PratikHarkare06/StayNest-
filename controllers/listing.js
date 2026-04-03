@@ -42,12 +42,19 @@ module.exports.index = async (req, res) => {
     }
 
     if (q) {
-        query.$or = [
-            { title: { $regex: q, $options: "i" } },
-            { location: { $regex: q, $options: "i" } },
-            { country: { $regex: q, $options: "i" } }
+        // Use $and to combine text search with the existing status $or — avoids overwriting it
+        query.$and = [
+            { $or: [{ status: "Active" }, { status: { $exists: false } }] },
+            { $or: [
+                { title: { $regex: q, $options: "i" } },
+                { location: { $regex: q, $options: "i" } },
+                { country: { $regex: q, $options: "i" } }
+            ]}
         ];
+        // Remove the top-level $or since $and now handles status
+        delete query.$or;
     }
+
 
     if (minPrice || maxPrice) {
         query.price = {};
