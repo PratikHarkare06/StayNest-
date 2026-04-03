@@ -317,5 +317,5 @@ io.on("connection", (socket) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`server is listening to port ${PORT}`);
+  console.log(`StayNest is live and listening on port ${PORT} [Production Mode]`);
 });
