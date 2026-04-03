@@ -14,10 +14,23 @@ const io = new Server(server);
 app.set('io', io); // Expose io for use in controllers
 
 const path = require("path");
-// Manually serve JS files from static_js to bypass any routing/cache collisions
+
+// Serve current static_js files
 app.get("/static_js/:filename", (req, res) => {
-    res.sendFile(path.join(__dirname, "public", "static_js", req.params.filename));
+    const file = path.join(__dirname, "public", "static_js", req.params.filename);
+    res.sendFile(file, (err) => {
+        if (err) res.status(404).send("Not found");
+    });
 });
+
+// Backward compat: redirect old /js/ paths (from stale SW cache) to /static_js/
+app.get("/js/:filename", (req, res) => {
+    const file = path.join(__dirname, "public", "static_js", req.params.filename);
+    res.sendFile(file, (err) => {
+        if (err) res.status(404).send("Not found");
+    });
+});
+
 app.use(express.static(path.join(__dirname, "public")));
 const mongoose = require("mongoose");
 const methodOverride = require("method-override");
