@@ -32,7 +32,8 @@
   <link rel="apple-touch-icon" href="/images/icons/icon-192.png" />
   
   <script src="/socket.io/socket.io.js"></script>
-  <script>
+  <!-- Service Worker disabled until 404 cache is cleared in production -->
+  <!-- <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('/sw.js')
@@ -40,7 +41,7 @@
           .catch(err => console.log('StayNest Service Worker: Failed', err));
       });
     }
-  </script>
+  </script> -->
 </head>
 
 <body data-is-user-logged-in="<%= !!currUser %>">
