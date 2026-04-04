@@ -8,7 +8,7 @@ const storage = new CloudinaryStorage({
     cloudinary: cloudinary,
     params: {
         folder: "majorproject_DEV",
-        allowedFormats: ["png", "jpg", "jpeg"],
+        allowedFormats: ["png", "jpg", "jpeg", "webp", "heic", "gif"],
     },
 });
 
