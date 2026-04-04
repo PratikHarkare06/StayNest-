@@ -1,201 +1,98 @@
-<h1 align="center">
-  🏠 StayNest
-</h1>
+# 🏡 StayNest
 
-<p align="center">
-  <b>A full-stack Airbnb-style property rental platform built with Node.js, Express, MongoDB & Firebase.</b>
-</p>
+**StayNest** is a full-stack, Airbnb-inspired vacation rental platform built with Node.js, Express, MongoDB, EJS, and Firebase Authentication. It supports property listings, real-time messaging, bookings, multi-currency pricing, an admin panel, and a Progressive Web App (PWA) experience.
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Node.js-20.x-339933?style=for-the-badge&logo=node.js&logoColor=white" />
-  <img src="https://img.shields.io/badge/Express.js-5.x-000000?style=for-the-badge&logo=express&logoColor=white" />
-  <img src="https://img.shields.io/badge/MongoDB-8.x-47A248?style=for-the-badge&logo=mongodb&logoColor=white" />
-  <img src="https://img.shields.io/badge/Firebase-Auth-FFCA28?style=for-the-badge&logo=firebase&logoColor=black" />
-  <img src="https://img.shields.io/badge/Socket.io-4.x-010101?style=for-the-badge&logo=socket.io&logoColor=white" />
-  <img src="https://img.shields.io/badge/Cloudinary-Image_CDN-3448C5?style=for-the-badge&logo=cloudinary&logoColor=white" />
-</p>
-
----
-
-## 📌 Overview
-
-**StayNest** is a production-ready, full-featured property rental web application inspired by Airbnb. It allows users to list, discover, book, and review properties across India and beyond. The platform is built on a robust MVC architecture and features real-time messaging, Firebase authentication, push notifications, interactive maps, and an admin control panel.
+> 🌐 **Live App:** [staynest.onrender.com](https://staynest.onrender.com)  
+> 📦 **GitHub:** [github.com/PratikHarkare06/StayNest-](https://github.com/PratikHarkare06/StayNest-)
 
 ---
 
 ## ✨ Features
 
-### 👤 Authentication & User Management
-- **Firebase Authentication** — Secure login/signup with session-based persistence
-- **Google OAuth** — One-click sign in with Google accounts
-- **User Dashboard** — Personalized view of active listings and bookings
-- **Profile Pictures** — Upload and update avatars via Cloudinary CDN
-- **Wishlist / Favorites** — AJAX-powered heart toggle to save properties instantly without page reload
+### 🔐 Authentication
+- Firebase-based authentication with **Google Sign-In** and Email/Password
+- Persistent login sessions via `express-session` + `connect-mongo`
+- Protected routes with `isLoggedIn` middleware
 
-### 🏠 Listings & Property Management
-- **Full CRUD** — Create, Read, Update, and Delete property listings
-- **Cloud Image Upload** — Cloudinary integration for optimized image hosting
-- **Category Tags** — Filter by tags like Trending, Beach, Castles, Camping, Mountains, etc.
-- **Geocoding** — Auto-converts text addresses to map coordinates on listing creation
-- **Indian Properties Seeder** — Pre-built seed script for realistic demo data
+### 🏠 Listings
+- Browse **55+ curated property listings** across 11 categories (Trending, Rooms, Iconic Cities, Mountains, Castles, Pools, Camping, Arctic, Farms, Boats, Amazing Views)
+- Smart **search + filter** by destination, category, price (low→high, high→low), and date availability
+- **Infinite scroll** on the listings page for a seamless browsing experience
+- **Wishlist** — logged-in users can save and manage favorite properties
+- **Share listing** via native mobile share or link copy
+- **Photo gallery** with a 5-grid lightbox view per property
+- **Interactive cluster map** powered by Mapbox/Geoapify with real geocoded coordinates
+- **Similar listings** suggestions at the bottom of each property page
 
-### 🔍 Advanced Search & Discovery
-- **Smart Search Bar** — Dual-mode: shows popular destinations by default, switches to live DB results on keystroke
-- **AJAX Suggestions** — Rich results with property image, title, and location
-- **Keyboard Navigation** — Arrow key + Enter support for accessibility
-- **Filters** — Search by location, title, or country; with date picker and guest counter (Adults / Children / Infants)
+### 📅 Bookings
+- Date-blocked booking calendar — unavailable dates are greyed out
+- Booking confirmation page with full price breakdown (subtotal, cleaning fee, service fee, GST)
+- Guest dashboard **Trips** tab showing booking history
+- **Cancel booking** functionality
+- Host gets real-time booking notifications
 
-### 🗺️ Interactive Maps
-- **Geoapify Geocoding** — Precise coordinate lookup for every listing
-- **Cluster Map** — Homepage map groups nearby listings into clusters that expand on zoom
-- **Listing Location Map** — Per-property map pinpointing the exact location
+### 💬 Real-Time Messaging
+- Direct messaging between guests and hosts using **Socket.IO**
+- Full conversation thread view with timestamps
+- Unread message indicators in the navbar
 
-### 💬 Real-Time Messaging (Socket.IO)
-- **Live Chat** — Real-time direct messaging between users powered by WebSockets
-- **Instant Delivery** — Messages persisted to MongoDB and broadcast immediately
-- **Push Notifications (FCM)** — Firebase Cloud Messaging delivers notifications even when the user is offline
-- **Token Hygiene** — Expired FCM tokens automatically cleaned up from the database
+### 👤 User Dashboard
+- **Edit Profile** — update display name, bio, and avatar photo (uploaded to Cloudinary)
+- **Verify Identity** — upload government ID document for a verification badge
+- **My Trips** — view all past and upcoming bookings
+- **My Listings** — host's own properties with edit/delete controls
+- **Wishlist** tab — saved properties at a glance
+- **Analytics** tab — bar + line chart showing monthly earnings and booking trends (Chart.js)
+- Orphaned bookings (deleted properties/users) gracefully hydrated with placeholder data
 
-### ⭐ Reviews & Ratings
-- **Star Ratings** — 1 to 5-star rating system per property
-- **Review Text** — Written feedback for each stay
-- **Rating Breakdown** — Visual progress bars showing the distribution of ratings
-- **Author-Only Deletion** — Only the review author can delete their review
+### 🏨 Host Tools
+- Dedicated **Host Dashboard** with revenue KPIs, booking counts, and top listing performance
+- Create, edit, and delete listings with image upload to Cloudinary
+- Live occupancy overview
 
-### 💰 Booking System
-- **Property Reservations** — Book properties for specific check-in/check-out dates
-- **GST Tax Toggle** — One-click switch between base price and price with 18% GST
-- **Mobile Sticky Bar** — Price and booking button stick to the bottom on mobile for easy access
-- **Admin Booking Panel** — Full admin view to monitor and manage all bookings
+### 💱 Multi-Currency Support
+- Inline currency switcher supporting **INR (₹), USD ($), EUR (€)**
+- Prices convert dynamically across all listing cards
 
-### 🛡️ Admin Dashboard
-- **User Management** — View and manage all registered users
-- **Listing Oversight** — Monitor all properties listed on the platform
-- **Booking Management** — Admin-level control over all reservations
+### ⚙️ Admin Panel
+- Secure admin-only route (`/admin`)
+- View all users, listings, and bookings
+- Promote/demote users
 
-### 🎨 UI / UX
-- **Fully Responsive** — Bootstrap 5 grid, works on mobile, tablet, and desktop
-- **Skeleton Screens** — Placeholder shapes shown while data loads (perceived performance)
-- **Lazy Loading** — Images load only when scrolled into the viewport
-- **Toast Notifications** — Flash messages for success and error actions
-- **Infinite Scroll** — Load more listings as you scroll
-- **Email Notifications** — Nodemailer integration for transactional emails
+### 📱 Progressive Web App (PWA)
+- Installable on Android and iOS home screens
+- Custom app icon and splash screen
+- Service Worker for network-first caching strategy
+- Android build via **Capacitor**
 
-### 🔒 Security
-- **Helmet.js** — Strict Content Security Policy, XSS protection, and other HTTP security headers
-- **Joi Validation** — Server-side schema validation on all form inputs
-- **HttpOnly Cookies** — Secure, tamper-resistant session cookies
-- **MongoDB Session Store** — Sessions stored in MongoDB via `connect-mongo`
-- **Route Authorization** — `isLoggedIn`, `isOwner`, `isReviewAuthor` middleware guards
-- **Proxy Trust** — Configured for secure deployment behind cloud load balancers (Render/Railway)
+### 🖼 Cloudinary Image Storage
+- All user avatars and listing images stored on **Cloudinary CDN**
+- Supports PNG, JPG, JPEG, WebP, HEIC, GIF formats
+- Multer middleware with graceful upload error handling
+
+### ⚡ Performance
+- **gzip compression** via the `compression` middleware
+- **Promise.all** parallel DB queries + `.lean()` for faster responses
+- **Lazy-loaded** images across listings index and gallery
 
 ---
 
-## 🛠️ Tech Stack
+## 🛠 Tech Stack
 
 | Layer | Technology |
 |---|---|
-| **Runtime** | Node.js 20.x |
-| **Framework** | Express.js 5.x |
-| **Database** | MongoDB + Mongoose 8.x |
-| **Auth** | Firebase Authentication + express-session |
-| **Push Notifications** | Firebase Cloud Messaging (FCM) |
-| **Real-Time** | Socket.IO 4.x |
-| **Templating** | EJS + ejs-mate |
-| **Image Storage** | Cloudinary + Multer |
-| **Maps** | Geoapify API + Leaflet.js |
-| **Email** | Nodemailer |
-| **Validation** | Joi |
-| **Security** | Helmet.js |
-| **Session Store** | connect-mongo |
-| **Styling** | Bootstrap 5 + Custom CSS |
-
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-Make sure you have the following installed:
-
-- [Node.js](https://nodejs.org/) `v20.x` or higher
-- [MongoDB](https://www.mongodb.com/) (local) **or** a [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) cluster
-- A [Cloudinary](https://cloudinary.com/) account
-- A [Firebase](https://firebase.google.com/) project (for Auth + FCM)
-- A [Geoapify](https://www.geoapify.com/) API key (for maps)
-
----
-
-### 📦 Installation
-
-**1. Clone the repository**
-
-```bash
-git clone https://github.com/PratikHarkare06/StayNest-.git
-cd StayNest-
-```
-
-**2. Install dependencies**
-
-```bash
-npm install
-```
-
-**3. Set up environment variables**
-
-Create a `.env` file in the root directory:
-
-```env
-# ─── MongoDB ───────────────────────────────────────────
-# Local MongoDB
-ATLAS_URL=mongodb://127.0.0.1:27017/staynest
-
-# OR MongoDB Atlas (recommended for production)
-# ATLAS_URL=mongodb+srv://<username>:<password>@cluster0.xxxxx.mongodb.net/?appName=Cluster0
-
-# ─── Cloudinary ────────────────────────────────────────
-CLOUDINARY_URL=cloudinary://API_KEY:API_SECRET@CLOUD_NAME
-
-# ─── Maps ──────────────────────────────────────────────
-MAP_TOKEN=your_geoapify_api_key
-
-# ─── Session ───────────────────────────────────────────
-SESSION_SECRET=your_super_secret_session_string
-
-# ─── Firebase ──────────────────────────────────────────
-FIREBASE_API_KEY=your_firebase_api_key
-FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
-FIREBASE_PROJECT_ID=your_project_id
-FIREBASE_STORAGE_BUCKET=your_project.firebasestorage.app
-FIREBASE_MESSAGING_SENDER_ID=your_sender_id
-FIREBASE_APP_ID=your_app_id
-FIREBASE_MEASUREMENT_ID=G-XXXXXXXXXX
-FIREBASE_VAPID_KEY=your_vapid_key
-```
-
-**4. (Optional) Seed the database**
-
-Populate the database with sample Indian property listings:
-
-```bash
-node scripts/seedIndianProperties.js
-```
-
-**5. Run the development server**
-
-```bash
-npm run dev
-```
-
-The app will be running at **[http://localhost:8080](http://localhost:8080)**
-
----
-
-### 🏗️ Production Start
-
-```bash
-npm start
-```
+| Runtime | Node.js (v22) |
+| Framework | Express.js v5 |
+| Database | MongoDB Atlas + Mongoose |
+| Templating | EJS + EJS-Mate |
+| Authentication | Firebase Auth (Google + Email) |
+| File Storage | Cloudinary + Multer |
+| Real-Time | Socket.IO |
+| Maps | Mapbox SDK / Geoapify |
+| Charts | Chart.js |
+| Sessions | express-session + connect-mongo |
+| PWA | Capacitor (Android), Service Worker |
+| Deployment | Render.com |
 
 ---
 
@@ -203,121 +100,159 @@ npm start
 
 ```
 StayNest/
-├── app.js                  # Entry point, Express & Socket.IO setup
-├── middleware.js           # Auth, ownership & validation guards
+├── app.js                  # Main Express server
+├── cloudConfig.js          # Cloudinary + Multer storage setup
+├── middleware.js           # isLoggedIn, saveReturnTo helpers
 ├── schema.js               # Joi validation schemas
-├── cloudConfig.js          # Cloudinary + Multer configuration
-│
-├── models/
-│   ├── listing.js          # Property listing schema
-│   ├── user.js             # User schema (with FCM tokens, wishlist)
-│   ├── review.js           # Review & rating schema
-│   ├── booking.js          # Booking schema
-│   └── message.js          # Chat message schema
-│
 ├── controllers/
-│   ├── listing.js          # Listing CRUD logic
-│   ├── user.js             # Auth, profile, dashboard logic
-│   ├── review.js           # Review logic
-│   ├── booking.js          # Booking logic
-│   ├── admin.js            # Admin panel logic
-│   └── message.js          # Chat logic
-│
+│   ├── listing.js          # Listing CRUD + show/search logic
+│   ├── user.js             # Dashboard, profile, bookings
+│   ├── booking.js          # Booking confirm + create + cancel
+│   ├── message.js          # Messaging thread logic
+│   ├── review.js           # Review create/delete
+│   └── admin.js            # Admin panel
+├── models/
+│   ├── listing.js          # Listing schema
+│   ├── user.js             # User schema
+│   ├── booking.js          # Booking schema
+│   ├── review.js           # Review schema
+│   └── message.js          # Message schema
 ├── routes/
-│   ├── listing.js          # /listings routes
-│   ├── user.js             # /login, /signup, /dashboard routes
-│   ├── review.js           # /listings/:id/reviews routes
-│   ├── booking.js          # /listings/:id/bookings routes
-│   ├── admin.js            # /admin routes
-│   └── message.js          # /messages routes
-│
-├── views/                  # EJS templates
-│   ├── listings/           # Index, Show, New, Edit pages
-│   ├── users/              # Login, Signup, Dashboard pages
-│   ├── admin/              # Admin panel pages
-│   ├── messages/           # Chat pages
-│   ├── includes/           # Navbar, Footer, Flash, Skeleton
-│   └── layouts/            # Base boilerplate layout
-│
+│   ├── listing.js
+│   ├── user.js
+│   ├── booking.js
+│   ├── message.js
+│   ├── review.js
+│   └── admin.js
+├── views/
+│   ├── listings/           # index, show, new, edit, booking-confirm
+│   ├── users/              # dashboard, host-dashboard, login, signup
+│   ├── admin/              # Admin panel views
+│   ├── messages/           # Messaging UI
+│   └── boilerplate.ejs     # Shared layout
 ├── public/
-│   ├── css/                # Custom stylesheets
-│   ├── JS/                 # Client-side JS (map, wishlist, booking, etc.)
+│   ├── css/style.css
+│   ├── js/                 # Client-side scripts
 │   ├── images/             # Static assets
-│   └── firebase-messaging-sw.js  # FCM Service Worker
-│
-├── utils/
-│   ├── wrapAsync.js        # Async error wrapper
-│   ├── ExpressError.js     # Custom error class
-│   ├── firebase.js         # Firebase Admin SDK init
-│   └── email.js            # Nodemailer email utility
-│
-├── scripts/
-│   ├── seedIndianProperties.js  # Seed demo listings
-│   ├── makeAdmin.js             # Promote a user to admin
-│   ├── transfer_listings.js     # DB migration utility
-│   └── debug_analytics.js      # Analytics debug tool
-│
-├── init/
-│   ├── data.js             # Initial seed data
-│   └── index.js            # DB initializer script
-│
-├── .env                    # ⚠️ NOT committed — see above
-├── .gitignore
-├── package.json
-└── README.md
+│   └── manifest.json       # PWA manifest
+└── init/                   # Seed scripts for listings
 ```
 
 ---
 
-## 🔑 Key API Routes
+## 🚀 Getting Started (Local Development)
 
-| Method | Route | Description |
-|---|---|---|
-| `GET` | `/listings` | Browse all listings |
-| `GET` | `/listings/:id` | View a single listing |
-| `POST` | `/listings` | Create a new listing |
-| `PUT` | `/listings/:id` | Update a listing |
-| `DELETE` | `/listings/:id` | Delete a listing |
-| `POST` | `/listings/:id/reviews` | Add a review |
-| `DELETE` | `/listings/:id/reviews/:reviewId` | Delete a review |
-| `GET` | `/listings/:id/bookings` | View bookings for a listing |
-| `POST` | `/listings/:id/bookings` | Book a property |
-| `GET` | `/messages` | View all conversations |
-| `GET` | `/messages/:userId` | Open a specific chat |
-| `GET` | `/admin/dashboard` | Admin overview |
-| `GET` | `/admin/users` | Manage users |
-| `GET` | `/admin/bookings` | Manage bookings |
-| `GET` | `/dashboard` | User dashboard |
+### Prerequisites
+- Node.js v18+
+- MongoDB Atlas account
+- Cloudinary account
+- Firebase project
+
+### 1. Clone the Repository
+```bash
+git clone https://github.com/PratikHarkare06/StayNest-.git
+cd StayNest-
+```
+
+### 2. Install Dependencies
+```bash
+npm install
+```
+
+### 3. Configure Environment Variables
+Create a `.env` file in the root directory:
+
+```env
+# Server
+PORT=8080
+NODE_ENV=production
+
+# MongoDB
+ATLAS_URL=mongodb+srv://<username>:<password>@cluster.mongodb.net/staynest
+
+# Session
+SECRET=your_session_secret_here
+
+# Cloudinary
+CLOUDINARY_URL=cloudinary://API_KEY:API_SECRET@CLOUD_NAME
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+
+# Maps
+MAP_TOKEN=your_geoapify_or_mapbox_token
+
+# Firebase
+FIREBASE_PROJECT_ID=your_firebase_project_id
+FIREBASE_SERVICE_ACCOUNT_KEY={"type":"service_account",...}
+```
+
+### 4. Seed the Database
+```bash
+node init/index.js
+```
+
+### 5. Start the Server
+```bash
+npm start        # Production
+npm run dev      # Development with auto-reload
+```
 
 ---
 
-## ⚙️ Scripts
+## 🔑 Admin Access
 
-| Command | Description |
+To grant admin access to a user, run:
+```bash
+node makeAdmin.js <user_email>
+```
+
+Then access the admin panel at `/admin`.
+
+---
+
+## 🌍 Deployment (Render.com)
+
+1. Connect your GitHub repo to a Render **Web Service**
+2. Set **Build Command:** `npm install`
+3. Set **Start Command:** `npm start`
+4. Add all environment variables from `.env` into Render's **Environment** tab
+5. Render auto-deploys on every push to `main`
+
+> ⚠️ **Important:** The `CLOUDINARY_URL` and `CLOUDINARY_API_*` keys **must** be added to Render's environment, otherwise photo uploads will fail with a "Something went wrong" error.
+
+---
+
+## 📋 Recent Changelog
+
+| Version | What Changed |
 |---|---|
-| `npm start` | Start the production server |
-| `npm run dev` | Start with hot-reload (`node --watch`) |
-| `node scripts/seedIndianProperties.js` | Seed demo property data |
-| `node scripts/makeAdmin.js` | Promote a user to admin role |
+| Latest | Fixed dashboard crash for orphaned bookings/deleted listings/deleted guests |
+| Latest | Fixed booking-confirm page crash for orphaned listings |
+| Latest | Fixed listing show-page crash when host account is deleted |
+| Latest | Expanded Cloudinary accepted formats to include WebP, HEIC, GIF |
+| Latest | Added global error stack traces for debugging production crashes |
+| Latest | Added application favicon for browser tabs and PWA |
+| Latest | Fixed mobile share link URL crashes (ObjectId sanitization) |
+| Latest | Implemented user profile editing with Cloudinary avatar upload |
+| Latest | Fixed real-time chat Socket.IO payload schema mismatch |
+| Latest | Implemented multi-currency switcher (INR/USD/EUR) |
+| Latest | Added infinite scroll for listings page |
+| Latest | Added PWA Service Worker with network-first caching |
+| Latest | Enabled gzip compression for all responses |
+| Latest | Seeded 55 listings across 11 curated categories |
 
 ---
 
-## 🌐 Deployment
+## 📸 Screenshots
 
-This app is ready to deploy on **[Render](https://render.com/)**, **[Railway](https://railway.app/)**, or any Node.js host.
-
-**Environment setup for production:**
-- Set `NODE_ENV=production` in your hosting environment variables
-- Use your **MongoDB Atlas** connection string for `ATLAS_URL`
-- Add all `.env` keys as environment variables in your hosting dashboard — never commit `.env` to Git
+| Listings Page | Property Detail | User Dashboard |
+|---|---|---|
+| Browse all 55+ listings with filters | Full photo gallery + booking widget | Trips, Wishlist, Analytics, Listings |
 
 ---
 
 ## 📄 License
 
-This project is licensed under the **ISC License**.
-
----
-
-<p align="center">Built with ❤️ by <a href="https://github.com/PratikHarkare06">Pratik Harkare</a></p>
-# Render cache bust Fri Apr  3 13:22:51 IST 2026
+This project is for educational and portfolio purposes.  
+Built by **Pratik Harkare** — [GitHub](https://github.com/PratikHarkare06)
