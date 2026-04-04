@@ -135,6 +135,13 @@ module.exports.renderHostDashboard = async (req, res) => {
             status: { $ne: 'Cancelled' }
         }).populate('user listing').sort({ createdAt: -1 });
 
+        // Safeguard orphaned bookings (if the guest who booked it was deleted)
+        hostBookings.forEach(b => {
+             if (!b.user) {
+                  b.user = { username: "Former Guest", image: { url: "/images/default-user.jpg" } };
+             }
+        });
+
         // Financial KPIs
         const totalRevenue = hostBookings.reduce((acc, curr) => acc + curr.totalPrice, 0);
         const activeBookings = hostBookings.filter(b => b.status === 'Confirmed' && new Date(b.checkOut) >= new Date()).length;
@@ -186,8 +193,26 @@ module.exports.renderHostDashboard = async (req, res) => {
 module.exports.renderDashboard = async (req, res) => {
     try {
         const user = await User.findById(req.user._id).populate('wishlist');
+        
+        // Filter out any wishlist items that were deleted from the database
+        if (user.wishlist) {
+             user.wishlist = user.wishlist.filter(item => item !== null);
+        }
+
         const myListings = await Listing.find({ owner: req.user._id }).populate('reviews');
         const myBookings = await Booking.find({ user: req.user._id }).populate('listing');
+
+        // Safeguard orphaned bookings (if the host deleted the listing after it was booked)
+        myBookings.forEach(b => {
+            if (!b.listing) {
+                b.listing = {
+                    title: "Unavailable/Deleted Property",
+                    image: { url: "/images/placeholder.jpg" },
+                    location: "Unknown Location",
+                    country: "Unknown"
+                };
+            }
+        });
 
         // Basic calculation for the main user dashboard
         const listingIds = myListings.map(l => l._id);
