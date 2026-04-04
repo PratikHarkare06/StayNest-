@@ -3,6 +3,10 @@
 <div class="row mt-4">
   <div class="alert alert-danger col-5 offset-3" role="alert">
     <p><h6 class="alert-heading"><%= message %></h6></p>
-
+    <% if (typeof err !== 'undefined' && err.stack) { %>
+        <br>
+        <pre class="bg-light p-2 text-dark" style="font-size: 0.8rem; overflow-x: auto;"><%= err.stack %></pre>
+        <p class="text-sm mt-2"><strong>Please send this error to your developer for a precise fix!</strong></p>
+    <% } %>
   </div>
 </div>

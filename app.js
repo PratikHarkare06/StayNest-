@@ -156,7 +156,6 @@ app.use(async (req, res, next) => {
   }
   next();
 });
-
 app.use("/", UserRouter);
 app.use("/listings", listingRouter);
 app.use("/listings/:id/reviews", reviewRouter);
@@ -195,6 +194,7 @@ self.FIREBASE_CONFIG = {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
+  console.error("APP ERROR TRACE:", err);
   let { statusCode = 500, message = "Something went wrong!" } = err;
 
   // Send JSON for API requests, render error page for browser requests
@@ -211,7 +211,8 @@ app.use((err, req, res, next) => {
     res.status(statusCode).render("error.ejs", {
       message: message,
       statusCode: statusCode,
-      currUser: req.user || null // Ensure currUser is defined for navbar
+      currUser: req.user || null,
+      err: err
     });
   }
 });
