@@ -192,6 +192,13 @@ module.exports.renderNewForm = (req, res) => {
 
 module.exports.showListing = async (req, res) => {
     let { id } = req.params;
+
+    // Sanitize ID: Mobile share integrations sometimes append text directly to the URL route.
+    // Since MongoDB ObjectIDs are strictly 24 hex characters, we truncate it.
+    if (id && id.length > 24) {
+        id = id.substring(0, 24);
+    }
+
     const listing = await Listing.findById(id)
         .populate({
             path: "reviews",
