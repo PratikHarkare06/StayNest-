@@ -256,6 +256,26 @@ module.exports.verifyId = async (req, res) => {
     }
 };
 
+module.exports.updateProfile = async (req, res) => {
+    try {
+        const { username, bio } = req.body;
+        const updateData = { username: username || req.user.username, bio: bio || "" };
+        
+        if (req.file) {
+            updateData['image.url'] = req.file.path;
+            updateData['image.filename'] = req.file.filename;
+        }
+
+        await User.findByIdAndUpdate(req.user._id, { $set: updateData });
+        req.flash("success", "Profile updated successfully!");
+        res.redirect("/dashboard");
+    } catch (e) {
+        console.error("Profile Update Error:", e);
+        req.flash("error", "Failed to update profile.");
+        res.redirect("/dashboard");
+    }
+};
+
 module.exports.toggleWishlist = async (req, res) => {
     try {
         const { id } = req.params;

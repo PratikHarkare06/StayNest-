@@ -574,7 +574,37 @@
     </div>
 
     <!-- Edit Profile Modal (moved down for clean tab section) -->
-
+    <!-- Edit Profile Modal -->
+    <div class="modal fade" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0 shadow">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold" id="editProfileModalLabel">Edit Profile</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form action="/dashboard/edit-profile" method="POST" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label for="username" class="form-label fw-bold">Display Name</label>
+                            <input type="text" class="form-control rounded-3" id="username" name="username" value="<%= user.username %>" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="bio" class="form-label fw-bold">Bio</label>
+                            <textarea class="form-control rounded-3" id="bio" name="bio" rows="3" placeholder="Tell us a little about yourself..."><%= user.bio || '' %></textarea>
+                        </div>
+                        <div class="mb-4">
+                            <label for="image" class="form-label fw-bold">Profile Picture</label>
+                            <input class="form-control rounded-3" type="file" id="image" name="image" accept="image/*">
+                            <div class="form-text">Choose a square image for best results.</div>
+                        </div>
+                        <div class="d-grid mt-4">
+                            <button type="submit" class="btn btn-danger rounded-pill py-2 fw-bold" style="background-color: #ff385c; border: none;">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script>

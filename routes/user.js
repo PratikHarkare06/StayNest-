@@ -19,6 +19,7 @@ router
 router.get("/dashboard", isLoggedIn, userController.renderDashboard);
 router.get("/dashboard/host", isLoggedIn, userController.renderHostDashboard);
 router.post("/dashboard/verify-id", isLoggedIn, upload.single('idDocument'), userController.verifyId);
+router.post("/dashboard/edit-profile", isLoggedIn, upload.single('image'), userController.updateProfile);
 router.post("/users/wishlist/:id", isLoggedIn, userController.toggleWishlist);
 router.post("/save-fcm-token", isLoggedIn, userController.saveFcmToken);
 
