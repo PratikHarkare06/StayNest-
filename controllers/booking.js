@@ -18,6 +18,14 @@ module.exports.showConfirmPage = async (req, res) => {
             return res.redirect("/listings");
         }
 
+        if (!listing.owner) {
+            listing.owner = {
+                _id: listing._id,
+                username: "StayNest Host",
+                image: { url: "/images/default-user.jpg" }
+            };
+        }
+
         const inDate  = new Date(checkIn);
         const outDate = new Date(checkOut);
         const nights  = Math.ceil(Math.abs(outDate - inDate) / 86400000);
