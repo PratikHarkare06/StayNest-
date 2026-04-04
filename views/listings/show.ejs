@@ -331,7 +331,7 @@
                 <div class="d-flex justify-content-between align-items-start mb-3">
                     <div>
                         <h1 class="fw-bold mb-2">
-                            Stay at <%= listing.owner.username %>'s place
+                            Stay at <%= listing.owner ? listing.owner.username : 'StayNest Host' %>'s place
                         </h1>
                         <p class="text-muted fs-5 mb-0">
                             <%= listing.maxGuests %> guests · 1 bedroom · 1 bed · 1 bath

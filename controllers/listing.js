@@ -213,6 +213,15 @@ module.exports.showListing = async (req, res) => {
         return res.redirect("/listings");
     }
 
+    // Mock orphaned listing owner to prevent EJS crashes if User was deleted
+    if (!listing.owner) {
+        listing.owner = {
+            _id: listing._id,
+            username: "StayNest Host",
+            image: { url: "/images/default-user.jpg" }
+        };
+    }
+
     // Fetch confirmed bookings for this listing to block dates
     const bookings = await Booking.find({ listing: id, status: { $ne: "Cancelled" } }).select("checkIn checkOut");
 
