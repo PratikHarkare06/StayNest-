@@ -2,6 +2,11 @@
 
 **StayNest** is a full-stack, Airbnb-inspired vacation rental platform built with Node.js, Express, MongoDB, EJS, and Firebase Authentication. It supports property listings, real-time messaging, bookings, multi-currency pricing, an admin panel, and a Progressive Web App (PWA) experience.
 
+
+## 📸 Application Preview
+<img width="1470" height="842" alt="Screenshot 2026-07-26 at 6 09 46 PM" src="https://github.com/user-attachments/assets/9c81cc85-705d-4dcc-91ef-6f23b7aa540f" />
+
+
 > 🌐 **Live App:** [staynest.onrender.com](https://staynest.onrender.com)  
 > 📦 **GitHub:** [github.com/PratikHarkare06/StayNest-](https://github.com/PratikHarkare06/StayNest-)
 
