@@ -1,5 +1,10 @@
 # 🏡 StayNest
 
+## 🎥 Application Demo 
+https://github.com/PratikHarkare06/Pratik-Portfolio-Material/releases/download/v1.0.0/StayNest.Demo.mp4
+
+
+
 **StayNest** is a full-stack, Airbnb-inspired vacation rental platform built with Node.js, Express, MongoDB, EJS, and Firebase Authentication. It supports property listings, real-time messaging, bookings, multi-currency pricing, an admin panel, and a Progressive Web App (PWA) experience.
 
 
