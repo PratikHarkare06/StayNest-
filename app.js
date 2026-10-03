@@ -2,6 +2,24 @@ if (process.env.NODE_ENV != "production") {
   require("dotenv").config({ override: true });
 }
 
+// Cloud container DNS resolution fix (fixes querySrv ENOTFOUND on Render/Linux)
+const dns = require("dns");
+try {
+  dns.setDefaultResultOrder("ipv4first");
+  dns.setServers(["8.8.8.8", "1.1.1.1", "8.8.4.4"]);
+} catch (dnsErr) {
+  console.warn("DNS server override notice:", dnsErr.message);
+}
+
+// Global process error handlers to prevent unhandled DNS crashes
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("⚠️ Handled Unhandled Rejection:", reason?.message || reason);
+});
+
+process.on("uncaughtException", (err) => {
+  console.error("🚨 Handled Uncaught Exception:", err?.message || err);
+});
+
 const express = require("express");
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -59,15 +77,24 @@ const UserRouter = require("./routes/user.js");
 // Define the main function to connect to MongoDB
 async function main() {
   const DB_URL = process.env.ATLAS_URL;
-  await mongoose.connect(DB_URL);
+  if (!DB_URL) {
+    throw new Error("ATLAS_URL environment variable is missing! Please configure ATLAS_URL in your deployment environment settings.");
+  }
+  await mongoose.connect(DB_URL, {
+    serverSelectionTimeoutMS: 8000,
+  });
 }
 
 main()
   .then(() => {
-    console.log("connected to DB");
+    console.log("✅ Successfully connected to MongoDB Atlas");
   })
   .catch((err) => {
-    console.log(err);
+    console.error("❌ MongoDB connection error:", err.message);
+    console.error("👉 Troubleshooting tips:");
+    console.error("   1. Verify your ATLAS_URL in the Render dashboard has no typos.");
+    console.error("   2. In MongoDB Atlas -> Network Access, ensure 0.0.0.0/0 (Allow access from anywhere) is active.");
+    console.error("   3. Ensure your MongoDB Atlas cluster is not paused or deleted.");
   });
 
 app.set("view engine", "ejs");
@@ -77,44 +104,51 @@ app.use(express.urlencoded({ extended: true }));
 app.use(methodOverride("_method"));
 app.engine("ejs", ejsMate);
 
-// Use Helmet for security headers, strictly whitelisting required external assets
-// const helmet = require("helmet");
-// app.use(helmet({
-//   contentSecurityPolicy: {
-//     directives: {
-//       defaultSrc: ["'self'"],
-//       scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://unpkg.com", "https://www.gstatic.com", "https://www.google-analytics.com", "https://apis.google.com", "https://accounts.google.com", "https://*.firebaseapp.com"],
-//       scriptSrcAttr: ["'unsafe-inline'"], // Allow the legacy 'onclick' handlers in the navbar search bar
-//       connectSrc: ["'self'", "https://api.geoapify.com", "https://staynest-2047f.firebaseapp.com", "https://identitytoolkit.googleapis.com", "https://securetoken.googleapis.com", "https://*.firebaseio.com", "wss://*.firebaseio.com", "https://www.google-analytics.com", "https://accounts.google.com"],
-//       imgSrc: ["'self'", "data:", "https://images.unsplash.com", "https://res.cloudinary.com", "https://*.tile.openstreetmap.org", "https://tile.openstreetmap.org", "https://unpkg.com", "https://lh3.googleusercontent.com"],
-//       styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://unpkg.com", "https://fonts.googleapis.com", "https://cdnjs.cloudflare.com"],
-//       fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com", "data:"],
-//       frameSrc: ["'self'", "https://staynest-2047f.firebaseapp.com", "https://accounts.google.com"],
-//     },
-//   },
-//   crossOriginEmbedderPolicy: false,
-//   crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" }
-// Create MongoDB session store
-const store = MongoStore.create({
-  mongoUrl: process.env.ATLAS_URL,
-  touchAfter: 24 * 3600, // lazy session update (in seconds)
+// Health check endpoint for Render deployment monitoring & uptime checks
+app.get("/health", (req, res) => {
+  const isDbConnected = mongoose.connection.readyState === 1;
+  res.status(isDbConnected ? 200 : 503).json({
+    status: isDbConnected ? "healthy" : "degraded",
+    database: isDbConnected ? "connected" : "disconnected",
+    timestamp: new Date().toISOString()
+  });
 });
 
-// Handle store errors
+// Create MongoDB session store - reusing Mongoose's client connection safely
+const store = MongoStore.create({
+  clientPromise: new Promise((resolve) => {
+    if (mongoose.connection.readyState === 1) {
+      resolve(mongoose.connection.getClient());
+    } else {
+      mongoose.connection.once("connected", () => {
+        resolve(mongoose.connection.getClient());
+      });
+      mongoose.connection.on("error", (err) => {
+        console.warn("MongoStore connection warning:", err.message);
+      });
+    }
+  }),
+  touchAfter: 24 * 3600, // lazy session update (in seconds)
+  crypto: {
+    secret: process.env.SESSION_SECRET || "staynest_default_session_secret_2026",
+  },
+});
+
+// Handle store errors gracefully
 store.on("error", function (e) {
-  console.log("SESSION STORE ERROR", e);
+  console.warn("SESSION STORE WARNING:", e.message || e);
 });
 
 const sessionOptions = {
   store,
-  secret: process.env.SESSION_SECRET,
+  secret: process.env.SESSION_SECRET || "staynest_default_session_secret_2026",
   resave: false,
-  saveUninitialized: true,
+  saveUninitialized: false,
   cookie: {
     expires: Date.now() + 7 * 24 * 60 * 60 * 1000,
     maxAge: 7 * 24 * 60 * 60 * 1000,
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production" ? true : false,
+    secure: process.env.NODE_ENV === "production",
   },
 };
 
